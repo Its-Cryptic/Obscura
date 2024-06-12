@@ -1,6 +1,6 @@
 package dev.cryptic.obscura.core;
 
-import dev.cryptic.obscura.Launcher;
+import dev.cryptic.obscura.Obscura;
 import org.lwjgl.glfw.GLFWErrorCallback;
 
 import static dev.cryptic.obscura.core.utils.Consts.*;
@@ -20,8 +20,8 @@ public class EngineManager {
 
     private void init() throws Exception {
         glfwSetErrorCallback(errorCallback = GLFWErrorCallback.createPrint(System.err));
-        window = Launcher.getWindow();
-        gameLogic = Launcher.getGame();
+        window = Obscura.getWindow();
+        gameLogic = Obscura.getGame();
         window.init();
         gameLogic.init();
     }

@@ -4,23 +4,27 @@ import dev.cryptic.obscura.core.EngineManager;
 import dev.cryptic.obscura.core.Window;
 import dev.cryptic.obscura.core.utils.WindowSizePresets;
 import dev.cryptic.obscura.test.TestGame;
-import org.lwjgl.opengl.GL11;
+
+import org.apache.logging.log4j.*;
 
 import static dev.cryptic.obscura.core.utils.Consts.*;
 
-public class Launcher {
+public class Obscura {
+    public static final Logger LOGGER = LogManager.getLogger(Obscura.class.getSimpleName());
     private static Window window;
     private static TestGame game;
 
     public static void main(String[] args) {
+        LOGGER.error("Starting Obscura");
         window = new Window(TITLE, WindowSizePresets.HD, true);
-        window.init();
+        game = new TestGame();
+        EngineManager engine = new EngineManager();
 
-        while (!window.windowShouldClose()) {
-            GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-            window.update();
+        try {
+            engine.start();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        window.cleanup();
     }
 
     public static Window getWindow() {

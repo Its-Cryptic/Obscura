@@ -1,22 +1,37 @@
 package dev.cryptic.obscura.core;
 
-import dev.cryptic.obscura.Launcher;
+import dev.cryptic.obscura.Obscura;
+import dev.cryptic.obscura.core.entity.Model;
+import dev.cryptic.obscura.core.shaders.ShaderManager;
+import dev.cryptic.obscura.core.utils.ResourceLocation;
 
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL30.*;
 
 public class RenderManager {
     private final Window window;
+    private ShaderManager shader;
 
     public RenderManager() {
-        this.window = Launcher.getWindow();
+        this.window = Obscura.getWindow();
     }
 
     public void init() throws Exception {
-
+        shader = new ShaderManager();
+        shader.createVertexShader(ResourceLocation.shader("my_shader.vsh").open());
+        shader.createFragmentShader(ResourceLocation.shader("my_shader.fsh").open());
+        shader.link();
     }
 
-    public void render() {
-
+    public void render(Model model) {
+        clear();
+        shader.bind();
+        glBindVertexArray(model.getId());
+        glEnableVertexAttribArray(0);
+        glDrawArrays(GL_TRIANGLES, 0, model.getVertexCount());
+        glDisableVertexAttribArray(0);
+        glBindVertexArray(0);
+        shader.unbind();
     }
 
     public void clear() {
@@ -24,6 +39,6 @@ public class RenderManager {
     }
 
     public void cleanup() {
-
+        shader.cleanup();
     }
 }
