@@ -18,8 +18,8 @@ public class RenderManager {
 
     public void init() throws Exception {
         shader = new ShaderManager();
-        shader.createVertexShader(ResourceLocation.shader("my_shader.vsh").open());
-        shader.createFragmentShader(ResourceLocation.shader("my_shader.fsh").open());
+        shader.createVertexShader(ResourceLocation.shader("my_shader.vsh").openAsString());
+        shader.createFragmentShader(ResourceLocation.shader("my_shader.fsh").openAsString());
         shader.link();
     }
 

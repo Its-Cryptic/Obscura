@@ -19,16 +19,14 @@ public class ResourceLocation {
     }
 
     public static ResourceLocation asset(String path) {
-        //return new ResourceLocation("assets/" + path);
         return ResourceFolder.ASSETS.resource(path);
     }
 
     public static ResourceLocation shader(String path) {
-        //return asset("shaders/" + path);
         return ResourceFolder.SHADERS.resource(path);
     }
 
-    public String open() throws Exception {
+    public String openAsString() throws Exception {
         String result;
         try (InputStream in = Utils.class.getResourceAsStream("/"+path)) {
             if (in == null) throw new Exception("Resource not found: " + path);
