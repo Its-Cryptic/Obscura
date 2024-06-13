@@ -1,5 +1,11 @@
 package dev.cryptic.obscura.core.shaders;
 
+import org.joml.*;
+import org.lwjgl.system.MemoryStack;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
 import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
@@ -13,9 +19,73 @@ public class ShaderManager {
     private int vertexShaderId;
     private int fragmentShaderId;
 
+    private final Map<String, Integer> uniforms;
+
     public ShaderManager() throws Exception {
         programId = glCreateProgram();
         if (programId == 0) throw new Exception("Could not create Shader");
+
+        uniforms = new HashMap<>();
+    }
+
+    public void createUniform(String uniformName) throws Exception {
+        int uniformLocation = glGetUniformLocation(programId, uniformName);
+        if (uniformLocation < 0) throw new Exception("Could not find uniform: " + uniformName);
+        uniforms.put(uniformName, uniformLocation);
+    }
+
+    public void setUniform(String uniformName, Matrix2f matrix2f) {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            glUniformMatrix2fv(uniforms.get(uniformName), false, matrix2f.get(stack.mallocFloat(4)));
+        }
+    }
+
+    public void setUniform(String uniformName, Matrix3f matrix3f) {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            glUniformMatrix3fv(uniforms.get(uniformName), false, matrix3f.get(stack.mallocFloat(9)));
+        }
+    }
+
+    public void setUniform(String uniformName, Matrix4f matrix4f) {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            glUniformMatrix4fv(uniforms.get(uniformName), false, matrix4f.get(stack.mallocFloat(16)));
+        }
+    }
+
+    public void setUniform(String uniformName, float value) {
+        glUniform1f(uniforms.get(uniformName), value);
+    }
+
+    public void setUniform(String uniformName, int value) {
+        glUniform1i(uniforms.get(uniformName), value);
+    }
+
+    public void setUniform(String uniformName, Vector2f vector2f) {
+        glUniform2f(uniforms.get(uniformName), vector2f.x, vector2f.y);
+    }
+
+    public void setUniform(String uniformName, Vector2i vector2i) {
+        glUniform2i(uniforms.get(uniformName), vector2i.x, vector2i.y);
+    }
+
+    public void setUniform(String uniformName, Vector3f vector3f) {
+        glUniform3f(uniforms.get(uniformName), vector3f.x, vector3f.y, vector3f.z);
+    }
+
+    public void setUniform(String uniformName, Vector3i vector3i) {
+        glUniform3i(uniforms.get(uniformName), vector3i.x, vector3i.y, vector3i.z);
+    }
+
+    public void setUniform(String uniformName, Vector4f vector4f) {
+        glUniform4f(uniforms.get(uniformName), vector4f.x, vector4f.y, vector4f.z, vector4f.w);
+    }
+
+    public void setUniform(String uniformName, Vector4i vector4i) {
+        glUniform4i(uniforms.get(uniformName), vector4i.x, vector4i.y, vector4i.z, vector4i.w);
+    }
+
+    public void setUniform(String uniformName, boolean value) {
+        glUniform1i(uniforms.get(uniformName), value ? 1 : 0);
     }
 
     public void createVertexShader(String shaderCode) throws Exception {

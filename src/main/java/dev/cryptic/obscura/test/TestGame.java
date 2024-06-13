@@ -2,11 +2,15 @@ package dev.cryptic.obscura.test;
 
 import dev.cryptic.obscura.Obscura;
 import dev.cryptic.obscura.core.ILogic;
+import dev.cryptic.obscura.core.entity.Entity;
+import dev.cryptic.obscura.core.entity.Model;
 import dev.cryptic.obscura.core.entity.ObjectLoader;
 import dev.cryptic.obscura.core.RenderManager;
 import dev.cryptic.obscura.core.Window;
-import dev.cryptic.obscura.core.entity.Model;
+import dev.cryptic.obscura.core.entity.Texture;
+import dev.cryptic.obscura.core.utils.ResourceLocation;
 import org.joml.Math;
+import org.joml.Vector3f;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
@@ -19,7 +23,7 @@ public class TestGame implements ILogic {
     private final ObjectLoader loader;
     private final Window window;
 
-    private Model model;
+    private Entity entity;
 
     public TestGame() {
         this.renderer = new RenderManager();
@@ -31,20 +35,27 @@ public class TestGame implements ILogic {
         renderer.init();
 
         float[] vertices = new float[] {
-            -0.5f, 0.5f, 0.0f,
-            -0.5f, -0.5f, 0.0f,
-            0.5f, -0.5f, 0.0f,
-            0.5f, -0.4f, 0.0f,
-            0.5f, 0.6f, 0.0f,
-            -0.5f, 0.6f, 0.0f
+                -0.5f, 0.5f, 0.0f,
+                -0.5f, -0.5f, 0.0f,
+                0.5f, -0.5f, 0.0f,
+                0.5f, 0.5f, 0.0f
         };
 
         int[] indices = new int[] {
-            0, 1, 3,
-            3, 1, 2
+                0, 1, 3,
+                3, 1, 2
         };
 
-        model = loader.loadModel(vertices, indices);
+        float[] textureCoords = new float[] {
+                0, 0,
+                0, 1,
+                1, 1,
+                1, 0
+        };
+
+        Model model = loader.loadModel(vertices, textureCoords, indices);
+        model.setTexture(new Texture(loader.loadTexture(ResourceLocation.texture("lodestar.png"))));
+        entity = new Entity(model, new Vector3f(1, 0, 0), new Vector3f(0, 0, 0), 1.0f);
     }
 
     @Override
@@ -63,6 +74,9 @@ public class TestGame implements ILogic {
     public void update() {
         color += direction * 0.01f;
         color = Math.clamp(0.0f, 1.0f, color);
+
+        if (entity.getPosition().x < -1.5f) entity.getPosition().x = 1.5f;
+        entity.getPosition().x -= 0.01f;
     }
 
     @Override
@@ -73,7 +87,7 @@ public class TestGame implements ILogic {
         }
 
         window.setClearColor(color, color, color, 1.0f);
-        renderer.render(model);
+        renderer.render(entity);
     }
 
     @Override

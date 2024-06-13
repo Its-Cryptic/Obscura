@@ -18,8 +18,16 @@ public class ResourceLocation {
         return path;
     }
 
+    public static ResourceLocation create(String path) {
+        return new ResourceLocation(path);
+    }
+
     public static ResourceLocation asset(String path) {
         return ResourceFolder.ASSETS.resource(path);
+    }
+
+    public static ResourceLocation texture(String path) {
+        return ResourceFolder.TEXTURES.resource(path);
     }
 
     public static ResourceLocation shader(String path) {
@@ -39,6 +47,7 @@ public class ResourceLocation {
 
     public enum ResourceFolder {
         ASSETS("assets"),
+        TEXTURES(ASSETS.getLocation() + "/textures"),
         SHADERS(ASSETS.getLocation() + "/shaders");
 
         private final String location;
