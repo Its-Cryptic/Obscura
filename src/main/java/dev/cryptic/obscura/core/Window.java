@@ -2,7 +2,6 @@ package dev.cryptic.obscura.core;
 
 import dev.cryptic.obscura.core.utils.WindowSizePresets;
 import org.joml.Matrix4f;
-import org.joml.Vector2i;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
@@ -95,8 +94,8 @@ public class Window {
         GL11.glClearColor(0.3f, 0.4f, 0.6f, 1.0f);
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         GL11.glEnable(GL11.GL_STENCIL_TEST);
-        GL11.glEnable(GL11.GL_CULL_FACE);
-        GL11.glCullFace(GL11.GL_BACK);
+        //GL11.glEnable(GL11.GL_CULL_FACE);
+        //GL11.glCullFace(GL11.GL_BACK);
     }
 
     public void update() {
@@ -148,7 +147,7 @@ public class Window {
         return height;
     }
 
-    public long getWindow() {
+    public long getWindowHandle() {
         return window;
     }
 

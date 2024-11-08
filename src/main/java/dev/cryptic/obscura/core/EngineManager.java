@@ -15,6 +15,7 @@ public class EngineManager {
     private boolean isRunning;
 
     private Window window;
+    private MouseInput mouseInput;
     private GLFWErrorCallback errorCallback;
     private ILogic gameLogic;
 
@@ -22,7 +23,10 @@ public class EngineManager {
         glfwSetErrorCallback(errorCallback = GLFWErrorCallback.createPrint(System.err));
         window = Obscura.getWindow();
         gameLogic = Obscura.getGame();
+        mouseInput = new MouseInput();
+
         window.init();
+        mouseInput.init();
         gameLogic.init();
     }
 
@@ -79,6 +83,7 @@ public class EngineManager {
     }
 
     private void input() {
+        mouseInput.input();
         gameLogic.input();
     }
 

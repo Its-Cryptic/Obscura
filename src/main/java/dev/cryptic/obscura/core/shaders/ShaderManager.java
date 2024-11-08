@@ -17,6 +17,7 @@ import static org.lwjgl.opengl.GL43.GL_COMPUTE_SHADER;
 public class ShaderManager {
     private int programId;
     private int vertexShaderId;
+    private int geometryShaderId;
     private int fragmentShaderId;
 
     private final Map<String, Integer> uniforms;
@@ -92,6 +93,10 @@ public class ShaderManager {
         vertexShaderId = createShader(shaderCode, ProgramType.VERTEX.getGlConst());
     }
 
+    public void createGeometryShader(String shaderCode) throws Exception {
+        geometryShaderId = createShader(shaderCode, ProgramType.GEOMETRY.getGlConst());
+    }
+
     public void createFragmentShader(String shaderCode) throws Exception {
         fragmentShaderId = createShader(shaderCode, ProgramType.FRAGMENT.getGlConst());
     }
@@ -119,6 +124,8 @@ public class ShaderManager {
         }
 
         if (vertexShaderId != 0) glDetachShader(programId, vertexShaderId);
+
+        if (geometryShaderId != 0) glDetachShader(programId, geometryShaderId);
 
         if (fragmentShaderId != 0) glDetachShader(programId, fragmentShaderId);
 
