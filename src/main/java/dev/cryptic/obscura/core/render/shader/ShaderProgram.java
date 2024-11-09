@@ -1,6 +1,8 @@
 package dev.cryptic.obscura.core.render.shader;
 
 import dev.cryptic.obscura.core.ResourceLocation;
+import org.joml.Matrix4f;
+import org.lwjgl.system.MemoryStack;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,10 +15,12 @@ import static org.lwjgl.opengl.GL20.*;
 public class ShaderProgram implements IShader {
     private final int programId;
     private final Map<ShaderType, Shader> shaders;
+    private final Map<String, Integer> uniforms;
 
     public ShaderProgram() {
         this.programId = glCreateProgram();
         this.shaders = new HashMap<>();
+        this.uniforms = new HashMap<>();
     }
 
     public void attachShader(Shader shader) {
@@ -31,6 +35,18 @@ public class ShaderProgram implements IShader {
 
     public boolean isValidShaderProgram() {
         return this.programId != 0 && this.shaders.containsKey(ShaderType.VERTEX) && this.shaders.containsKey(ShaderType.FRAGMENT);
+    }
+
+    public void createUniform(String uniformName) throws Exception {
+        int uniformLocation = glGetUniformLocation(programId, uniformName);
+        if (uniformLocation < 0) throw new Exception("Could not find uniform: " + uniformName);
+        uniforms.put(uniformName, uniformLocation);
+    }
+
+    public void setUniform(String uniformName, Matrix4f matrix4f) {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            glUniformMatrix4fv(uniforms.get(uniformName), false, matrix4f.get(stack.mallocFloat(16)));
+        }
     }
 
     /**

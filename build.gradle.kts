@@ -1,5 +1,7 @@
 plugins {
-    id("java")
+    id("java-library")
+    id("maven-publish")
+    id("signing")
 }
 
 group = "dev.cryptic.obscura"
@@ -9,6 +11,11 @@ val lwjglVersion = "3.3.3"
 val jomlVersion = "1.10.5"
 val lwjglNatives = "natives-windows"
 
+tasks.register<JavaExec>("runGame") {
+    mainClass.set("dev.cryptic.obscura.Obscura")
+    classpath = sourceSets["main"].runtimeClasspath
+    systemProperty("game.package", "com.example.mygame") // Replace with the actual package to scan
+}
 repositories {
     mavenCentral()
 }
@@ -42,7 +49,26 @@ dependencies {
 
     implementation("org.apache.logging.log4j:log4j-api:2.23.1")
     implementation("org.apache.logging.log4j:log4j-core:2.23.1")
+
+    implementation("org.reflections:reflections:0.10.2")
 }
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+//publishing {
+//    publications {
+//        create<MavenPublication>("maven") {
+//            groupId = "dev.cryptics.obscura"
+//            artifactId = "library"
+//            version = "1.1"
+//
+//            from(components["java"])
+//        }
+//    }
+//}
 
 tasks.test {
     useJUnitPlatform()
