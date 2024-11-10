@@ -1,13 +1,17 @@
 package dev.cryptic.obscura.core;
 
+import dev.cryptic.obscura.Obscura;
 import dev.cryptic.obscura.core.render.shader.ShaderProgram;
 import dev.cryptic.obscura.core.render.shader.ShaderType;
 import dev.cryptic.obscura.imgui.ImGuiLayer;
+import dev.cryptic.obscura.model.ObjModel;
 import imgui.ImGui;
 import imgui.ImGuiIO;
 import imgui.flag.ImGuiConfigFlags;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.*;
@@ -30,12 +34,12 @@ import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
 import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 import static org.lwjgl.opengl.GL30C.glDeleteVertexArrays;
+import static org.lwjgl.opengl.GL43.GL_DEBUG_OUTPUT;
 import static org.lwjgl.system.MemoryStack.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
 public class Window {
-
-    // The window handle
+    private static Logger LOGGER = LogManager.getLogger();
     private long handle;
     private int width, height;
     private String title;
@@ -162,6 +166,12 @@ public class Window {
         int vao2 = glGenVertexArrays();
         int vbo2 = glGenBuffers();
 
+        ObjModel model = new ObjModel("test");
+        model.loadModel();
+        model.init();
+        int vao3 = model.getVao();
+        LOGGER.info("VAO: " + vao3);
+
         float[] vertices = {
                 -0.5f, -0.5f, 0.0f,
                 0.5f, -0.5f, 0.0f,
@@ -190,8 +200,11 @@ public class Window {
         glBindBuffer(GL_ARRAY_BUFFER, 0); // Unbind VBO
         glBindVertexArray(0); // Unbind VAO
 
+        glEnable(GL_DEBUG_OUTPUT);
+
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LEQUAL);
+        glCullFace(GL_BACK);
 
         try {
             defaultShader.createUniform("ModelMat");
@@ -205,7 +218,10 @@ public class Window {
         // the window or has pressed the ESCAPE key.
         while (!glfwWindowShouldClose(this.handle)) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
-            render(defaultShader, vao);
+            //render(defaultShader, vao);
+            //render(defaultShader, vao2);
+            //render(defaultShader, vao3);
+            model.render(defaultShader);
 
             // IMGUI START
             imGuiGlfw.newFrame();
@@ -231,6 +247,11 @@ public class Window {
         glDeleteVertexArrays(vao);
         glDeleteBuffers(vbo);
         glDeleteProgram(defaultShader.getId());
+
+        glDeleteVertexArrays(vao2);
+        glDeleteBuffers(vbo2);
+
+        Obscura.getModelLoader().cleanup();
     }
 
     private void update() {
@@ -241,16 +262,17 @@ public class Window {
     public static void render(ShaderProgram shaderProgram, int vao) {
         glUseProgram(shaderProgram.getId());
         shaderProgram.setUniform("ModelMat", createModelMatrix(position, rotation, scale));
-        rotation.add(0.1f, 0.1f, 0.1f);
+        rotation.add(0.5f, 0.5f, 0.5f);
         shaderProgram.setUniform("ViewMat", GameRenderer.getMainCamera().getViewMatrix());
         shaderProgram.setUniform("ProjMat", GameRenderer.getMainCamera().getProjectionMatrix());
         //shaderProgram.setUniform("ProjMat", new Matrix4f().identity());
         glBindVertexArray(vao);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        //glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, 30, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0); // Unbind VAO
     }
 
-    private static Vector3f position = new Vector3f(0, 0, -1);
+    private static Vector3f position = new Vector3f(0, 0, -5);
     private static Vector3f rotation = new Vector3f(0, 0, 0);
     private static Vector3f scale = new Vector3f(1, 1, 1);
 

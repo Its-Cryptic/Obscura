@@ -29,7 +29,15 @@ public class ResourceLocation {
         return shader(path + "." + shaderType.getFileExtension());
     }
 
-    public String open() {
+    public static ResourceLocation texture(String path) {
+        return ResourceFolder.TEXTURES.resource(path);
+    }
+
+    public static ResourceLocation model(String path) {
+        return ResourceFolder.MODELS.resource(path);
+    }
+
+    public String openAsString() {
         String result;
         try (InputStream stream = ResourceLocation.class.getResourceAsStream("/" + path)) {
             if (stream == null) throw new RuntimeException("Resource not found: " + path);
@@ -39,6 +47,12 @@ public class ResourceLocation {
             throw new RuntimeException("Failed to open resource: " + path, e);
         }
         return result;
+    }
+
+    public InputStream open() {
+        InputStream stream = ResourceLocation.class.getResourceAsStream("/" + path);
+        if (stream == null) throw new RuntimeException("Resource not found: " + path);
+        return stream;
     }
 
     public enum ResourceFolder {

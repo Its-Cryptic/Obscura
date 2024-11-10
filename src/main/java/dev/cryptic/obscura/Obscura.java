@@ -2,6 +2,7 @@ package dev.cryptic.obscura;
 
 import dev.cryptic.obscura.config.ObscuraContext;
 import dev.cryptic.obscura.core.AbstractGame;
+import dev.cryptic.obscura.core.ModelLoader;
 import dev.cryptic.obscura.core.ObscuraGame;
 import dev.cryptic.obscura.core.Window;
 import org.apache.logging.log4j.*;
@@ -16,11 +17,13 @@ import java.util.Set;
 public class Obscura {
     public static final Logger LOGGER = LogManager.getLogger();
     private static Window window;
+    private static ModelLoader modelLoader;
     private static ObscuraContext context;
     private static AbstractGame game;
     public static void main(String[] args) {
         LOGGER.info("Starting Obscura");
         context = new ObscuraContext(args);
+        modelLoader = new ModelLoader();
         launchGame(context);
         game.start();
 
@@ -71,4 +74,7 @@ public class Obscura {
         }
     }
 
+    public static ModelLoader getModelLoader() {
+        return modelLoader;
+    }
 }

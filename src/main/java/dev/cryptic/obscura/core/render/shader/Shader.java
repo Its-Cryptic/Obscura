@@ -13,7 +13,7 @@ public class Shader implements IShader {
     public Shader(ShaderType type, ResourceLocation shaderLocation) {
         this.type = type;
         this.shaderLocation = shaderLocation;
-        this.source = shaderLocation.open();
+        this.source = shaderLocation.openAsString();
     }
 
     public void compile() throws Exception {
