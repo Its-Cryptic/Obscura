@@ -1,8 +1,7 @@
 package com.example.mygame;
 
-import dev.cryptic.obscura.Obscura;
-import dev.cryptic.obscura.config.ObscuraContext;
-import dev.cryptic.obscura.core.*;
+import dev.cryptics.obscura.config.ObscuraContext;
+import dev.cryptics.obscura.core.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -12,7 +11,6 @@ public class MyGame extends AbstractGame {
     private static final Logger LOGGER = LogManager.getLogger();
 
     public MyGame(ObscuraContext context) {
-        //super(context);
         INSTANCE = this;
         String[] args = context.getArgs();
         context.buildWindow(windowBuilder -> windowBuilder

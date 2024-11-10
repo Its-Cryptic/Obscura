@@ -1,0 +1,130 @@
+package dev.cryptics.obscura.model;
+
+import dev.cryptics.obscura.Obscura;
+import dev.cryptics.obscura.core.GameRenderer;
+import dev.cryptics.obscura.core.ResourceLocation;
+import dev.cryptics.obscura.core.render.shader.ShaderProgram;
+import dev.cryptics.obscura.model.data.IndexedMesh;
+import dev.cryptics.obscura.model.data.Vertex;
+import org.joml.Vector3f;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static dev.cryptics.obscura.core.Window.createModelMatrix;
+import static org.lwjgl.opengl.GL15.*;
+import static org.lwjgl.opengl.GL30.*;
+
+public abstract class IndexedModel {
+    protected List<Vertex> vertices;
+    protected List<IndexedMesh> meshes;
+    protected List<Integer> bakedIndices;
+    //protected List<ModelModifier<?>> modifiers;
+    protected String modelId;
+
+    private int vao;
+
+    public IndexedModel(String modelId) {
+        this.modelId = modelId;
+        this.vertices = new ArrayList<>();
+        this.meshes = new ArrayList<>();
+        this.bakedIndices = new ArrayList<>();
+    }
+
+    public abstract void loadModel();
+
+//    public void applyModifiers() {
+//        if (modifiers != null) {
+//            modifiers.forEach(modifier -> modifier.apply(this));
+//        }
+//    }
+
+    public void init() {
+        this.bakeIndices();
+
+        this.vao = Obscura.getModelLoader().loadToVAO(this);
+    }
+
+    private static Vector3f position = new Vector3f(0, 0, -5);
+    private static Vector3f rotation = new Vector3f(0, 0, 0);
+    private static Vector3f scale = new Vector3f(1, 1, 1);
+
+    public void render(ShaderProgram shaderProgram) {
+        glUseProgram(shaderProgram.getId());
+
+        shaderProgram.setUniform("ModelMat", createModelMatrix(position, rotation, scale));
+        rotation.add(0.5f, 0.5f, 0.5f);
+        shaderProgram.setUniform("ViewMat", GameRenderer.getMainCamera().getViewMatrix());
+        shaderProgram.setUniform("ProjMat", GameRenderer.getMainCamera().getProjectionMatrix());
+
+        glBindVertexArray(vao);
+        glEnableVertexAttribArray(0);
+        glEnableVertexAttribArray(1);
+        glDrawElements(GL_TRIANGLES, this.bakedIndices.size(), GL_UNSIGNED_INT, 0);
+        glDisableVertexAttribArray(0);
+        glDisableVertexAttribArray(1);
+        glBindVertexArray(0);
+    }
+
+    public void bakeIndices() {
+        for (IndexedMesh mesh : this.meshes) {
+            this.bakedIndices.addAll(mesh.getIndices());
+        }
+    }
+
+    public List<Vertex> getVertices() {
+        return this.vertices;
+    }
+
+    public List<IndexedMesh> getMeshes() {
+        return this.meshes;
+    }
+
+    public void setMeshes(List<IndexedMesh> meshes) {
+        this.meshes = meshes;
+    }
+
+    public List<Integer> getBakedIndices() {
+        return this.bakedIndices;
+    }
+
+    public int getVao() {
+        return this.vao;
+    }
+
+    public String getModelId() {
+        return this.modelId;
+    }
+
+    public ResourceLocation getAssetLocation() {
+        return ResourceLocation.model(this.modelId + ".obj");
+    }
+
+    public float[] getPositions() {
+        float[] positions = new float[this.vertices.size() * 3];
+        this.vertices.forEach(vertex -> {
+            int index = this.vertices.indexOf(vertex);
+            positions[index * 3] = vertex.getPosition().x;
+            positions[index * 3 + 1] = vertex.getPosition().y;
+            positions[index * 3 + 2] = vertex.getPosition().z;
+        });
+        return positions;
+    }
+
+    public float[] getNormals() {
+        float[] normals = new float[this.vertices.size() * 3];
+        this.vertices.forEach(vertex -> {
+            int index = this.vertices.indexOf(vertex);
+            normals[index * 3] = vertex.getNormal().x;
+            normals[index * 3 + 1] = vertex.getNormal().y;
+            normals[index * 3 + 2] = vertex.getNormal().z;
+        });
+        return normals;
+    }
+
+    public int[] getIndices() {
+        return this.bakedIndices.stream().mapToInt(i -> i).toArray();
+    }
+
+
+}
