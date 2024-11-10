@@ -51,6 +51,8 @@ dependencies {
     implementation("org.apache.logging.log4j:log4j-core:2.23.1")
 
     implementation("org.reflections:reflections:0.10.2")
+
+    implementation("io.github.spair:imgui-java-app:1.81.0")
 }
 
 java {

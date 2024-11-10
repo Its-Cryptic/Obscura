@@ -1,5 +1,7 @@
 package dev.cryptic.obscura.core;
 
+import dev.cryptic.obscura.core.render.shader.ShaderType;
+
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
@@ -21,6 +23,10 @@ public class ResourceLocation {
 
     public static ResourceLocation shader(String path) {
         return ResourceFolder.SHADERS.resource(path);
+    }
+
+    public static ResourceLocation shader(String path, ShaderType shaderType) {
+        return shader(path + "." + shaderType.getFileExtension());
     }
 
     public String open() {

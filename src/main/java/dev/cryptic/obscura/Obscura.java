@@ -21,10 +21,6 @@ public class Obscura {
     public static void main(String[] args) {
         LOGGER.info("Starting Obscura");
         context = new ObscuraContext(args);
-
-        //window = new Window("Obscura", 1280, 720);
-        //window.run();
-
         launchGame(context);
         game.start();
 

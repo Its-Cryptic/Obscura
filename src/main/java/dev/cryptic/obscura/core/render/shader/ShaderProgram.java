@@ -71,7 +71,7 @@ public class ShaderProgram implements IShader {
         }
 
         public Builder addShader(ShaderType type, String shaderFile) {
-            this.shaders.put(type, new Shader(type, ResourceLocation.shader(shaderFile)));
+            this.shaders.put(type, new Shader(type, ResourceLocation.shader(shaderFile, type)));
             return this;
         }
 

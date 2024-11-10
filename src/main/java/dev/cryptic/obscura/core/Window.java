@@ -2,6 +2,12 @@ package dev.cryptic.obscura.core;
 
 import dev.cryptic.obscura.core.render.shader.ShaderProgram;
 import dev.cryptic.obscura.core.render.shader.ShaderType;
+import dev.cryptic.obscura.imgui.ImGuiLayer;
+import imgui.ImGui;
+import imgui.ImGuiIO;
+import imgui.flag.ImGuiConfigFlags;
+import imgui.gl3.ImGuiImplGl3;
+import imgui.glfw.ImGuiImplGlfw;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.*;
@@ -9,6 +15,7 @@ import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.*;
 
+import javax.annotation.Nullable;
 import java.nio.*;
 
 import static org.lwjgl.glfw.Callbacks.*;
@@ -33,28 +40,55 @@ public class Window {
     private int width, height;
     private String title;
 
+    private GLFWKeyCallbackI keyCallback;
+    private GLFWFramebufferSizeCallbackI framebufferSizeCallback;
+
+    private final ImGuiImplGlfw imGuiGlfw = new ImGuiImplGlfw();
+    private final ImGuiImplGl3 imGuiGl3 = new ImGuiImplGl3();
+    private ImGuiLayer imguiLayer;
+
     public Window(String title, int width, int height) {
         this.width = width;
         this.height = height;
         this.title = title;
+        this.imguiLayer = new ImGuiLayer();
     }
 
     public void run() {
         System.out.println("Hello LWJGL " + Version.getVersion() + "!");
 
-        init();
+        initWindow();
+        initImgui();
+
         loop();
 
-        // Free the window callbacks and destroy the window
+        destoyImGui();
+        destroyWindow();
+    }
+
+    private void destoyImGui() {
+        imGuiGlfw.dispose();
+        imGuiGl3.dispose();
+        ImGui.destroyContext();
+    }
+
+    private void destroyWindow() {
         glfwFreeCallbacks(handle);
         glfwDestroyWindow(handle);
-
-        // Terminate GLFW and free the error callback
         glfwTerminate();
         glfwSetErrorCallback(null).free();
     }
 
-    private void init() {
+    private void initImgui() {
+        ImGui.createContext();
+        ImGuiIO io = ImGui.getIO();
+        io.addConfigFlags(ImGuiConfigFlags.ViewportsEnable);
+
+        imGuiGlfw.init(handle, true);
+        imGuiGl3.init("#version 330");
+    }
+
+    private void initWindow() {
         // Setup an error callback. The default implementation
         // will print the error message in System.err.
         GLFWErrorCallback.createPrint(System.err).set();
@@ -68,14 +102,12 @@ public class Window {
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE); // the window will be resizable
 
         // Create the window
-        handle = glfwCreateWindow(this.width, this.height, "Hello World!", NULL, NULL);
+        handle = glfwCreateWindow(this.width, this.height, this.title, NULL, NULL);
         if ( handle == NULL ) throw new RuntimeException("Failed to create the GLFW window");
 
         // Setup a key callback. It will be called every time a key is pressed, repeated or released.
-        glfwSetKeyCallback(handle, (window, key, scancode, action, mods) -> {
-            if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
-                glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
-        });
+        glfwSetKeyCallback(handle, this::onKeyCallback);
+        glfwSetFramebufferSizeCallback(handle, this::onFramebufferSizeCallback);
 
         // Get the thread stack and push a new frame
         try (MemoryStack stack = stackPush()) {
@@ -104,31 +136,23 @@ public class Window {
 
         // Make the window visible
         glfwShowWindow(handle);
-    }
 
-    private void loop() {
         // This line is critical for LWJGL's interoperation with GLFW's
         // OpenGL context, or any context that is managed externally.
         // LWJGL detects the context that is current in the current thread,
         // creates the GLCapabilities instance and makes the OpenGL
         // bindings available for use.
         GL.createCapabilities();
+    }
+
+    private void loop() {
 
         // Set the clear color
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-//        ShaderProgram shaderProgram = new ShaderProgram();
-//
-//        Shader vertexShader = new Shader(ShaderType.VERTEX, ResourceLocation.shader("default.vsh"));
-//        Shader fragmentShader = new Shader(ShaderType.FRAGMENT, ResourceLocation.shader("default.fsh"));
-//        try {
-//            vertexShader.compile();
-//            fragmentShader.compile();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-        ShaderProgram shaderProgram = ShaderProgram.Builder.of("default")
-                .addShader(ShaderType.VERTEX, "default.vsh")
-                .addShader(ShaderType.FRAGMENT, "default.fsh")
+
+        ShaderProgram defaultShader = ShaderProgram.Builder.of("default")
+                .addShader(ShaderType.VERTEX, "default")
+                .addShader(ShaderType.FRAGMENT, "default")
                 .build();
 
         // Initialize VAO and VBO once here
@@ -170,9 +194,9 @@ public class Window {
         glDepthFunc(GL_LEQUAL);
 
         try {
-            shaderProgram.createUniform("ModelMat");
-            shaderProgram.createUniform("ViewMat");
-            shaderProgram.createUniform("ProjMat");
+            defaultShader.createUniform("ModelMat");
+            defaultShader.createUniform("ViewMat");
+            defaultShader.createUniform("ProjMat");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -181,15 +205,32 @@ public class Window {
         // the window or has pressed the ESCAPE key.
         while (!glfwWindowShouldClose(this.handle)) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
-            render(shaderProgram, vao);
-            //render(shaderProgram, vao2);
+            render(defaultShader, vao);
+
+            // IMGUI START
+            imGuiGlfw.newFrame();
+            ImGui.newFrame();
+
+            imguiLayer.imgui();
+
+            ImGui.render();
+            imGuiGl3.renderDrawData(ImGui.getDrawData());
+
+            if (ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) {
+                final long backupWindowPtr = glfwGetCurrentContext();
+                ImGui.updatePlatformWindows();
+                ImGui.renderPlatformWindowsDefault();
+                GLFW.glfwMakeContextCurrent(backupWindowPtr);
+            }
+            //IMGUI END
+
             update();
         }
 
         // Cleanup: Delete VAO and VBO after the loop ends
         glDeleteVertexArrays(vao);
         glDeleteBuffers(vbo);
-        glDeleteProgram(shaderProgram.getId());
+        glDeleteProgram(defaultShader.getId());
     }
 
     private void update() {
@@ -230,5 +271,71 @@ public class Window {
 
     public int getHeight() {
         return this.height;
+    }
+
+    public long getHandle() {
+        return this.handle;
+    }
+
+    public void onKeyCallback(long window, int key, int scancode, int action, int mods) {
+        if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
+            glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
+        }
+        this.keyCallback.invoke(window, key, scancode, action, mods);
+    }
+
+    private void onFramebufferSizeCallback(long window, int framebufferWidth, int framebufferHeight) {
+        this.width = framebufferWidth;
+        this.height = framebufferHeight;
+        glViewport(0, 0, framebufferWidth, framebufferHeight);
+        if (this.handle == window) {
+            int width = this.getWidth();
+            int height = this.getHeight();
+            if (framebufferWidth != 0 || framebufferHeight != 0) {
+
+            }
+        }
+        this.framebufferSizeCallback.invoke(window, framebufferWidth, framebufferHeight);
+    }
+
+
+
+    public static class Builder {
+        private String windowTitle = "Obscura";
+        private int windowWidth = 800;
+        private int windowHeight = 600;
+        private GLFWKeyCallbackI keyCallback = (window, key, scancode, action, mods) -> {};
+        private GLFWFramebufferSizeCallbackI framebufferSizeCallback = (window, width, height) -> {};
+
+        public Builder() {
+        }
+
+        public Builder setTitle(String title) {
+            this.windowTitle = title;
+            return this;
+        }
+
+        public Builder setWindowSize(int width, int height) {
+            this.windowWidth = width;
+            this.windowHeight = height;
+            return this;
+        }
+
+        public Builder addKeyCallback(GLFWKeyCallbackI keyCallback) {
+            this.keyCallback = keyCallback;
+            return this;
+        }
+
+        public Builder addFramebufferSizeCallback(GLFWFramebufferSizeCallbackI framebufferSizeCallback) {
+            this.framebufferSizeCallback = framebufferSizeCallback;
+            return this;
+        }
+
+        public Window build() {
+            Window window = new Window(windowTitle, windowWidth, windowHeight);
+            window.keyCallback = keyCallback;
+            window.framebufferSizeCallback = framebufferSizeCallback;
+            return window;
+        }
     }
 }
