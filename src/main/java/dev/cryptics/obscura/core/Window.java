@@ -62,6 +62,8 @@ public class Window {
         initWindow();
         initImgui();
 
+        initCamera();
+
         loop();
 
         destoyImGui();
@@ -145,6 +147,12 @@ public class Window {
         // creates the GLCapabilities instance and makes the OpenGL
         // bindings available for use.
         GL.createCapabilities();
+    }
+
+    public void initCamera() {
+        Camera camera = Obscura.getContext().getRenderer().getMainCamera();
+        camera.updateViewMatrix();
+        camera.updateProjectionMatrix();
     }
 
     private void loop() {

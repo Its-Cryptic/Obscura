@@ -18,8 +18,6 @@ public class Camera {
         this.fov = fov;
         this.zNear = zNear;
         this.zFar = zFar;
-        this.viewMatrix = updateViewMatrix();
-        this.projectionMatrix = updateProjectionMatrix();
     }
 
     public void setPosition(Vector3f position) {

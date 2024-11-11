@@ -26,7 +26,7 @@ import static org.lwjgl.opengl.GL30.GL_COLOR_ATTACHMENT1;
 public class GameRenderer extends ObscuraRenderer {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final Map<ResourceLocation, Shader> shaders = new HashMap<>();
-    private static Camera mainCamera = new Camera(90.0f, 0.1f, 1000.0f);
+    private Camera mainCamera = new Camera(90.0f, 0.1f, 1000.0f);
     private static Matrix4f projectionMatrix = new Matrix4f();
 
     private final IndexedModel suzanneModel = new ObjModel("suzanne");
@@ -53,7 +53,7 @@ public class GameRenderer extends ObscuraRenderer {
 
     }
 
-    public static Camera getMainCamera() {
+    public Camera getMainCamera() {
         return mainCamera;
     }
 }

@@ -9,7 +9,7 @@ import java.util.function.Consumer;
 
 public class ObscuraContext {
     private String[] args;
-    private ObscuraRenderer renderer;
+    private ObscuraRenderer renderer = new GameRenderer();
     public ObscuraContext(String[] args) {
         this.args = args;
     }

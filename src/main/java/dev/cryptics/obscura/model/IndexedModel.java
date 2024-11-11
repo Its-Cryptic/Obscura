@@ -54,8 +54,8 @@ public abstract class IndexedModel {
 
         shaderProgram.setUniform("ModelMat", createModelMatrix(position, rotation, scale));
         rotation.add(0.5f, 0.5f, 0.5f);
-        shaderProgram.setUniform("ViewMat", GameRenderer.getMainCamera().getViewMatrix());
-        shaderProgram.setUniform("ProjMat", GameRenderer.getMainCamera().getProjectionMatrix());
+        shaderProgram.setUniform("ViewMat", Obscura.getContext().getRenderer().getMainCamera().getViewMatrix());
+        shaderProgram.setUniform("ProjMat", Obscura.getContext().getRenderer().getMainCamera().getProjectionMatrix());
 
         glBindVertexArray(vao);
         glEnableVertexAttribArray(0);

@@ -22,7 +22,7 @@ public class MyGame extends AbstractGame {
                 })
                 .addFramebufferSizeCallback((window, width, height) -> {
                     LOGGER.info("Resized window to: " + width + "x" + height);
-                    GameRenderer.getMainCamera().updateProjectionMatrix();
+                    context.getRenderer().getMainCamera().updateProjectionMatrix();
                 })
         );
         LOGGER.info("Hello, Obscura!");
