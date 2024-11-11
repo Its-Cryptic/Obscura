@@ -73,6 +73,10 @@ public class Obscura {
         }
     }
 
+    public static ObscuraContext getContext() {
+        return context;
+    }
+
     public static ModelLoader getModelLoader() {
         return modelLoader;
     }

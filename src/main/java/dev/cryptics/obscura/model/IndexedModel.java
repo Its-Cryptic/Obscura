@@ -1,7 +1,7 @@
 package dev.cryptics.obscura.model;
 
 import dev.cryptics.obscura.Obscura;
-import dev.cryptics.obscura.core.GameRenderer;
+import dev.cryptics.obscura.core.render.GameRenderer;
 import dev.cryptics.obscura.core.ResourceLocation;
 import dev.cryptics.obscura.core.render.shader.ShaderProgram;
 import dev.cryptics.obscura.model.data.IndexedMesh;
@@ -45,7 +45,7 @@ public abstract class IndexedModel {
         this.vao = Obscura.getModelLoader().loadToVAO(this);
     }
 
-    private static Vector3f position = new Vector3f(0, 0, -5);
+    private static Vector3f position = new Vector3f(0, 0, -2);
     private static Vector3f rotation = new Vector3f(0, 0, 0);
     private static Vector3f scale = new Vector3f(1, 1, 1);
 
@@ -128,7 +128,6 @@ public abstract class IndexedModel {
     public float[] getTextureCoordinates() {
         float[] textureCoordinates = new float[this.vertices.size() * 2];
         this.vertices.forEach(vertex -> {
-            System.out.println(vertex.getUv());
             int index = this.vertices.indexOf(vertex);
             textureCoordinates[index * 2] = vertex.getUv().x;
             textureCoordinates[index * 2 + 1] = vertex.getUv().y;

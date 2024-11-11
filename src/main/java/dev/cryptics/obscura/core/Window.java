@@ -1,6 +1,8 @@
 package dev.cryptics.obscura.core;
 
 import dev.cryptics.obscura.Obscura;
+import dev.cryptics.obscura.core.consts.*;
+import dev.cryptics.obscura.core.render.framebuffer.FrameBuffer;
 import dev.cryptics.obscura.core.render.shader.ShaderProgram;
 import dev.cryptics.obscura.core.render.shader.ShaderType;
 import dev.cryptics.obscura.imgui.ImGuiLayer;
@@ -30,10 +32,7 @@ import static org.lwjgl.opengl.GL15.glBindBuffer;
 import static org.lwjgl.opengl.GL15.glBufferData;
 import static org.lwjgl.opengl.GL15.glGenBuffers;
 import static org.lwjgl.opengl.GL20.*;
-import static org.lwjgl.opengl.GL30.glBindVertexArray;
-import static org.lwjgl.opengl.GL30.glGenVertexArrays;
-import static org.lwjgl.opengl.GL30C.glDeleteVertexArrays;
-import static org.lwjgl.opengl.GL43.GL_DEBUG_OUTPUT;
+import static org.lwjgl.opengl.GL30.*;
 import static org.lwjgl.system.MemoryStack.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
@@ -158,18 +157,56 @@ public class Window {
                 .addShader(ShaderType.FRAGMENT, "default")
                 .build();
 
+        ShaderProgram screenShader = ShaderProgram.Builder.of("screen")
+                .addShader(ShaderType.VERTEX, "screen")
+                .addShader(ShaderType.FRAGMENT, "screen")
+                .build();
+
+        // FBO Config
+        int fbo = glGenFramebuffers();
+        LOGGER.info("FBO: " + fbo);
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+        int textureColorBuffer = glGenTextures();
+        int normalColorBuffer = glGenTextures();
+        int depthBuffer = glGenTextures();
+        glBindTexture(GL_TEXTURE_2D, depthBuffer);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, this.width, this.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthBuffer, 0);
+
+        glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, this.width, this.height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorBuffer, 0);
+
+        glBindTexture(GL_TEXTURE_2D, normalColorBuffer);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, this.width, this.height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normalColorBuffer, 0);
+
+        int[] drawBuffers = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+        glDrawBuffers(drawBuffers);
+
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+            LOGGER.error("Framebuffer is not complete!");
+        } else {
+            LOGGER.info("Framebuffer is complete!");
+        }
+
         // Initialize VAO and VBO once here
         int vao = glGenVertexArrays();
         int vbo = glGenBuffers();
 
-        int vao2 = glGenVertexArrays();
-        int vbo2 = glGenBuffers();
+        int screenVAO = glGenVertexArrays();
+        int screenVBO = glGenBuffers();
 
-        ObjModel model = new ObjModel("test");
+        ObjModel model = new ObjModel("suzanne");
         model.loadModel();
         model.init();
-        int vao3 = model.getVao();
-        LOGGER.info("VAO: " + vao3);
 
         float[] vertices = {
                 -0.5f, -0.5f, 0.0f,
@@ -177,10 +214,15 @@ public class Window {
                 0.0f,  0.5f, 0.0f
         };
 
-        float[] vertices2 = {
-                1.0f, 1.0f, 1.0f,
-                -1.0f, 1.0f, 1.0f,
-                0.0f,  -1.0f, -1.0f
+        float[] quadVertices = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
+                // positions   // texCoords
+                -1.0f,  1.0f,  0.0f, 1.0f,
+                -1.0f, -1.0f,  0.0f, 0.0f,
+                1.0f, -1.0f,  1.0f, 0.0f,
+
+                -1.0f,  1.0f,  0.0f, 1.0f,
+                1.0f, -1.0f,  1.0f, 0.0f,
+                1.0f,  1.0f,  1.0f, 1.0f
         };
 
         glBindVertexArray(vao);
@@ -191,15 +233,13 @@ public class Window {
         glBindBuffer(GL_ARRAY_BUFFER, 0); // Unbind VBO
         glBindVertexArray(0); // Unbind VAO
 
-        glBindVertexArray(vao2);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo2);
-        glBufferData(GL_ARRAY_BUFFER, vertices2, GL_STATIC_DRAW);
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * Float.BYTES, 0);
+        glBindVertexArray(screenVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, screenVBO);
+        glBufferData(GL_ARRAY_BUFFER, quadVertices, GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 2, GL_FLOAT, false, 4 * Float.BYTES, 0);
         glEnableVertexAttribArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, 0); // Unbind VBO
-        glBindVertexArray(0); // Unbind VAO
-
-        glEnable(GL_DEBUG_OUTPUT);
+        glVertexAttribPointer(1, 2, GL_FLOAT, false, 4 * Float.BYTES, 2 * Float.BYTES);
+        glEnableVertexAttribArray(1);
 
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LEQUAL);
@@ -209,6 +249,9 @@ public class Window {
             defaultShader.createUniform("ModelMat");
             defaultShader.createUniform("ViewMat");
             defaultShader.createUniform("ProjMat");
+
+            screenShader.createUniform("screenTexture");
+            screenShader.setUniform("screenTexture", 0);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -216,11 +259,17 @@ public class Window {
         // Run the rendering loop until the user has attempted to close
         // the window or has pressed the ESCAPE key.
         while (!glfwWindowShouldClose(this.handle)) {
+            glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+            glEnable(GL_DEPTH_TEST);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
-            //render(defaultShader, vao);
-            //render(defaultShader, vao2);
-            //render(defaultShader, vao3);
+
             model.render(defaultShader);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glDisable(GL_DEPTH_TEST);
+            glClear(GL_COLOR_BUFFER_BIT);
+
+            render(screenShader, screenVAO);
 
             // IMGUI START
             imGuiGlfw.newFrame();
@@ -246,11 +295,14 @@ public class Window {
         glDeleteVertexArrays(vao);
         glDeleteBuffers(vbo);
         glDeleteProgram(defaultShader.getId());
+        glDeleteProgram(screenShader.getId());
 
-        glDeleteVertexArrays(vao2);
-        glDeleteBuffers(vbo2);
+        glDeleteVertexArrays(screenVAO);
+        glDeleteBuffers(screenVBO);
 
-        Obscura.getModelLoader().cleanup();
+        glDeleteFramebuffers(fbo);
+
+        //Obscura.getModelLoader().cleanup();
     }
 
     private void update() {
@@ -260,15 +312,9 @@ public class Window {
 
     public static void render(ShaderProgram shaderProgram, int vao) {
         glUseProgram(shaderProgram.getId());
-        shaderProgram.setUniform("ModelMat", createModelMatrix(position, rotation, scale));
-        rotation.add(0.5f, 0.5f, 0.5f);
-        shaderProgram.setUniform("ViewMat", GameRenderer.getMainCamera().getViewMatrix());
-        shaderProgram.setUniform("ProjMat", GameRenderer.getMainCamera().getProjectionMatrix());
-        //shaderProgram.setUniform("ProjMat", new Matrix4f().identity());
         glBindVertexArray(vao);
-        //glDrawArrays(GL_TRIANGLES, 0, 3);
-        glDrawElements(GL_TRIANGLES, 30, GL_UNSIGNED_INT, 0);
-        glBindVertexArray(0); // Unbind VAO
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glBindVertexArray(0);
     }
 
     private static Vector3f position = new Vector3f(0, 0, -5);
@@ -309,13 +355,7 @@ public class Window {
         this.width = framebufferWidth;
         this.height = framebufferHeight;
         glViewport(0, 0, framebufferWidth, framebufferHeight);
-        if (this.handle == window) {
-            int width = this.getWidth();
-            int height = this.getHeight();
-            if (framebufferWidth != 0 || framebufferHeight != 0) {
 
-            }
-        }
         this.framebufferSizeCallback.invoke(window, framebufferWidth, framebufferHeight);
     }
 

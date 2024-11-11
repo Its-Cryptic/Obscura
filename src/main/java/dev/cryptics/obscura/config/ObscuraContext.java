@@ -1,12 +1,15 @@
 package dev.cryptics.obscura.config;
 
 import dev.cryptics.obscura.Obscura;
+import dev.cryptics.obscura.core.render.GameRenderer;
+import dev.cryptics.obscura.core.ObscuraRenderer;
 import dev.cryptics.obscura.core.Window;
 
 import java.util.function.Consumer;
 
 public class ObscuraContext {
     private String[] args;
+    private ObscuraRenderer renderer;
     public ObscuraContext(String[] args) {
         this.args = args;
     }
@@ -28,5 +31,9 @@ public class ObscuraContext {
         Window window = builder.build();
         Obscura.setWindow(window);
         window.run();
+    }
+
+    public ObscuraRenderer getRenderer() {
+        return renderer;
     }
 }

@@ -49,6 +49,10 @@ public class ShaderProgram implements IShader {
         }
     }
 
+    public void setUniform(String uniformName, int value) {
+        glUniform1i(uniforms.get(uniformName), value);
+    }
+
     /**
      * Usage:
      * <pre>
