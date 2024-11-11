@@ -60,9 +60,11 @@ public abstract class IndexedModel {
         glBindVertexArray(vao);
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
+        glEnableVertexAttribArray(2);
         glDrawElements(GL_TRIANGLES, this.bakedIndices.size(), GL_UNSIGNED_INT, 0);
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
+        glDisableVertexAttribArray(2);
         glBindVertexArray(0);
     }
 
@@ -122,9 +124,20 @@ public abstract class IndexedModel {
         return normals;
     }
 
+
+    public float[] getTextureCoordinates() {
+        float[] textureCoordinates = new float[this.vertices.size() * 2];
+        this.vertices.forEach(vertex -> {
+            System.out.println(vertex.getUv());
+            int index = this.vertices.indexOf(vertex);
+            textureCoordinates[index * 2] = vertex.getUv().x;
+            textureCoordinates[index * 2 + 1] = vertex.getUv().y;
+        });
+        return textureCoordinates;
+    }
+
     public int[] getIndices() {
         return this.bakedIndices.stream().mapToInt(i -> i).toArray();
     }
-
 
 }

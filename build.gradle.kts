@@ -12,7 +12,7 @@ val jomlVersion = "1.10.5"
 val lwjglNatives = "natives-windows"
 
 tasks.register<JavaExec>("runGame") {
-    mainClass.set("dev.cryptic.obscura.Obscura")
+    mainClass.set("dev.cryptics.obscura.Obscura")
     classpath = sourceSets["main"].runtimeClasspath
     systemProperty("game.package", "com.example.mygame") // Replace with the actual package to scan
 }
