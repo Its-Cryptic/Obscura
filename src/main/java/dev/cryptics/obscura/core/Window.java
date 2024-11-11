@@ -60,11 +60,15 @@ public class Window {
         System.out.println("Hello LWJGL " + Version.getVersion() + "!");
 
         initWindow();
+        Obscura.getContext().getRenderer().init();
         initImgui();
 
         initCamera();
 
         loop();
+
+        Obscura.getContext().getRenderer().cleanup();
+        Obscura.getModelLoader().cleanup();
 
         destoyImGui();
         destroyWindow();
@@ -156,161 +160,19 @@ public class Window {
     }
 
     private void loop() {
-
         // Set the clear color
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-
-        ShaderProgram defaultShader = ShaderProgram.Builder.of("default")
-                .addShader(ShaderType.VERTEX, "default")
-                .addShader(ShaderType.FRAGMENT, "default")
-                .build();
-
-        ShaderProgram screenShader = ShaderProgram.Builder.of("screen")
-                .addShader(ShaderType.VERTEX, "screen")
-                .addShader(ShaderType.FRAGMENT, "screen")
-                .build();
-
-        // FBO Config
-        int fbo = glGenFramebuffers();
-        LOGGER.info("FBO: " + fbo);
-        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
-        int textureColorBuffer = glGenTextures();
-        int normalColorBuffer = glGenTextures();
-        int depthBuffer = glGenTextures();
-        glBindTexture(GL_TEXTURE_2D, depthBuffer);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, this.width, this.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthBuffer, 0);
-
-        glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, this.width, this.height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorBuffer, 0);
-
-        glBindTexture(GL_TEXTURE_2D, normalColorBuffer);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, this.width, this.height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normalColorBuffer, 0);
-
-        int[] drawBuffers = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
-        glDrawBuffers(drawBuffers);
-
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            LOGGER.error("Framebuffer is not complete!");
-        } else {
-            LOGGER.info("Framebuffer is complete!");
-        }
-
-        // Initialize VAO and VBO once here
-        int vao = glGenVertexArrays();
-        int vbo = glGenBuffers();
-
-        int screenVAO = glGenVertexArrays();
-        int screenVBO = glGenBuffers();
-
-        ObjModel model = new ObjModel("suzanne");
-        model.loadModel();
-        model.init();
-
-        float[] vertices = {
-                -0.5f, -0.5f, 0.0f,
-                0.5f, -0.5f, 0.0f,
-                0.0f,  0.5f, 0.0f
-        };
-
-        float[] quadVertices = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
-                // positions   // texCoords
-                -1.0f,  1.0f,  0.0f, 1.0f,
-                -1.0f, -1.0f,  0.0f, 0.0f,
-                1.0f, -1.0f,  1.0f, 0.0f,
-
-                -1.0f,  1.0f,  0.0f, 1.0f,
-                1.0f, -1.0f,  1.0f, 0.0f,
-                1.0f,  1.0f,  1.0f, 1.0f
-        };
-
-        glBindVertexArray(vao);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW);
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * Float.BYTES, 0);
-        glEnableVertexAttribArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, 0); // Unbind VBO
-        glBindVertexArray(0); // Unbind VAO
-
-        glBindVertexArray(screenVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, screenVBO);
-        glBufferData(GL_ARRAY_BUFFER, quadVertices, GL_STATIC_DRAW);
-        glVertexAttribPointer(0, 2, GL_FLOAT, false, 4 * Float.BYTES, 0);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(1, 2, GL_FLOAT, false, 4 * Float.BYTES, 2 * Float.BYTES);
-        glEnableVertexAttribArray(1);
-
-        glEnable(GL_DEPTH_TEST);
-        glDepthFunc(GL_LEQUAL);
-        glCullFace(GL_BACK);
-
-        try {
-            defaultShader.createUniform("ModelMat");
-            defaultShader.createUniform("ViewMat");
-            defaultShader.createUniform("ProjMat");
-
-            screenShader.createUniform("screenTexture");
-            screenShader.setUniform("screenTexture", 0);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
         // Run the rendering loop until the user has attempted to close
         // the window or has pressed the ESCAPE key.
         while (!glfwWindowShouldClose(this.handle)) {
-            glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-            glEnable(GL_DEPTH_TEST);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
+            Obscura.getContext().getRenderer().render(new MatrixStack());
 
-            model.render(defaultShader);
-
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-            glDisable(GL_DEPTH_TEST);
-            glClear(GL_COLOR_BUFFER_BIT);
-
-            render(screenShader, screenVAO);
-
-            // IMGUI START
-            imGuiGlfw.newFrame();
-            ImGui.newFrame();
-
-            imguiLayer.imgui();
-
-            ImGui.render();
-            imGuiGl3.renderDrawData(ImGui.getDrawData());
-
-            if (ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) {
-                final long backupWindowPtr = glfwGetCurrentContext();
-                ImGui.updatePlatformWindows();
-                ImGui.renderPlatformWindowsDefault();
-                GLFW.glfwMakeContextCurrent(backupWindowPtr);
-            }
-            //IMGUI END
+            renderImgui();
 
             update();
         }
-
-        // Cleanup: Delete VAO and VBO after the loop ends
-        glDeleteVertexArrays(vao);
-        glDeleteBuffers(vbo);
-        glDeleteProgram(defaultShader.getId());
-        glDeleteProgram(screenShader.getId());
-
-        glDeleteVertexArrays(screenVAO);
-        glDeleteBuffers(screenVBO);
-
-        glDeleteFramebuffers(fbo);
-
-        //Obscura.getModelLoader().cleanup();
     }
 
     private void update() {
@@ -318,11 +180,21 @@ public class Window {
         glfwPollEvents();
     }
 
-    public static void render(ShaderProgram shaderProgram, int vao) {
-        glUseProgram(shaderProgram.getId());
-        glBindVertexArray(vao);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-        glBindVertexArray(0);
+    public void renderImgui() {
+        imGuiGlfw.newFrame();
+        ImGui.newFrame();
+
+        imguiLayer.imgui();
+
+        ImGui.render();
+        imGuiGl3.renderDrawData(ImGui.getDrawData());
+
+        if (ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) {
+            final long backupWindowPtr = glfwGetCurrentContext();
+            ImGui.updatePlatformWindows();
+            ImGui.renderPlatformWindowsDefault();
+            GLFW.glfwMakeContextCurrent(backupWindowPtr);
+        }
     }
 
     private static Vector3f position = new Vector3f(0, 0, -5);

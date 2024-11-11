@@ -53,6 +53,10 @@ public class ShaderProgram implements IShader {
         glUniform1i(uniforms.get(uniformName), value);
     }
 
+    public void cleanup() {
+        glDeleteProgram(this.programId);
+    }
+
     /**
      * Usage:
      * <pre>

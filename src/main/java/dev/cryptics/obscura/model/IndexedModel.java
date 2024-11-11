@@ -139,4 +139,8 @@ public abstract class IndexedModel {
         return this.bakedIndices.stream().mapToInt(i -> i).toArray();
     }
 
+    public void cleanup() {
+        glDeleteVertexArrays(this.vao);
+        glDeleteBuffers(this.vao);
+    }
 }
