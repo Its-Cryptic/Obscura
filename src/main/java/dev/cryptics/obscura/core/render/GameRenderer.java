@@ -12,7 +12,10 @@ import dev.cryptics.obscura.model.IndexedModel;
 import dev.cryptics.obscura.model.ObjModel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.joml.Math;
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -130,13 +133,31 @@ public class GameRenderer extends ObscuraRenderer {
         glCullFace(GL_BACK);
     }
 
+    private int degrees = 0;
     @Override
     public void render(MatrixStack matrixStack) {
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
         glEnable(GL_DEPTH_TEST);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        suzanneModel.render(defaultShader);
+        this.mainCamera.setPosition(new Vector3f(0, 4, 2));
+        this.mainCamera.setPitch(-45);
+        this.mainCamera.setYaw(0);
+
+        matrixStack.push();
+
+        matrixStack.rotateAround(new Quaternionf().rotateY((float) Math.toRadians(degrees)), 0, 0, -2);
+        suzanneModel.render(defaultShader, matrixStack);
+
+        matrixStack.push();
+        matrixStack.translate(0, 0, -2);
+        matrixStack.rotateAround(new Quaternionf().rotateY((float) Math.toRadians(degrees)), 0, 0, 2);
+        suzanneModel.render(defaultShader, matrixStack);
+        matrixStack.pop();
+
+        matrixStack.pop();
+
+        degrees += 1;
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glDisable(GL_DEPTH_TEST);

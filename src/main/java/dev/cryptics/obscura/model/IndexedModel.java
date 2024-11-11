@@ -1,6 +1,7 @@
 package dev.cryptics.obscura.model;
 
 import dev.cryptics.obscura.Obscura;
+import dev.cryptics.obscura.core.MatrixStack;
 import dev.cryptics.obscura.core.render.GameRenderer;
 import dev.cryptics.obscura.core.ResourceLocation;
 import dev.cryptics.obscura.core.render.shader.ShaderProgram;
@@ -11,7 +12,6 @@ import org.joml.Vector3f;
 import java.util.ArrayList;
 import java.util.List;
 
-import static dev.cryptics.obscura.core.Window.createModelMatrix;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL30.*;
 
@@ -45,15 +45,10 @@ public abstract class IndexedModel {
         this.vao = Obscura.getModelLoader().loadToVAO(this);
     }
 
-    private static Vector3f position = new Vector3f(0, 0, -2);
-    private static Vector3f rotation = new Vector3f(0, 0, 0);
-    private static Vector3f scale = new Vector3f(1, 1, 1);
-
-    public void render(ShaderProgram shaderProgram) {
+    public void render(ShaderProgram shaderProgram, MatrixStack matrixStack) {
         glUseProgram(shaderProgram.getId());
 
-        shaderProgram.setUniform("ModelMat", createModelMatrix(position, rotation, scale));
-        rotation.add(0.5f, 0.5f, 0.5f);
+        shaderProgram.setUniform("ModelMat", matrixStack.getMatrix());
         shaderProgram.setUniform("ViewMat", Obscura.getContext().getRenderer().getMainCamera().getViewMatrix());
         shaderProgram.setUniform("ProjMat", Obscura.getContext().getRenderer().getMainCamera().getProjectionMatrix());
 

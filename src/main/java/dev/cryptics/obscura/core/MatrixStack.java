@@ -31,12 +31,20 @@ public class MatrixStack {
         this.stack.getLast().rotate(quaternionf);
     }
 
+    public void rotateAround(Quaternionf quaternionf, float x, float y, float z) {
+        this.stack.getLast().rotateAround(quaternionf, x, y, z);
+    }
+
     public void push() {
-        this.stack.push(new Matrix4f(this.stack.getLast()));
+        this.stack.addLast(new Matrix4f(this.stack.getLast()));
     }
 
     public void pop() {
-        this.stack.pop();
+        this.stack.removeLast();
+    }
+
+    public boolean clear() {
+        return this.stack.size() == 1;
     }
 
     public Matrix4f getMatrix() {

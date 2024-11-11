@@ -55,11 +55,20 @@ public class Camera {
         this.updateProjectionMatrix();
     }
 
+    // YAW OF 0 IS FACING NORTH
+    // YAW OF 90 IS FACING EAST
+    // PITCH OF 0 IS LEVEL
+    // PITCH OF 90 IS LOOKING STRAIGHT UP
+
+    /**
+     * Keeps the camera in place and changes the pitch and yaw to look at a target
+     * @param target
+     */
     public void lookAt(Vector3f target) {
         Vector3f direction = target.sub(position, new Vector3f()).normalize();
-        this.pitch = (float) Math.toDegrees(Math.asin(direction.y));
-        this.yaw = (float) Math.toDegrees(Math.atan2(direction.z, direction.x)) - 90.0f;
-        this.updateViewMatrix();
+        this.pitch = (float) Math.toDegrees(Math.asin(direction.y()));
+        this.yaw = (float) Math.toDegrees(Math.atan2(direction.x(), -direction.z()));
+        updateViewMatrix();
     }
 
     public Vector3f getPosition() {
@@ -105,7 +114,7 @@ public class Camera {
     public Matrix4f updateViewMatrix() {
         if (this.viewMatrix == null) this.viewMatrix = new Matrix4f();
         this.viewMatrix.identity();
-        this.viewMatrix.rotateX((float) Math.toRadians(pitch));
+        this.viewMatrix.rotateX((float) Math.toRadians(-pitch));
         this.viewMatrix.rotateY((float) Math.toRadians(yaw));
         this.viewMatrix.rotateZ((float) Math.toRadians(roll));
         this.viewMatrix.translate(-position.x, -position.y, -position.z);

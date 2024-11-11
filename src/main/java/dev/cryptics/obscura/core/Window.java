@@ -26,13 +26,6 @@ import java.nio.*;
 import static org.lwjgl.glfw.Callbacks.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
-import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
-import static org.lwjgl.opengl.GL15.glBindBuffer;
-import static org.lwjgl.opengl.GL15.glBufferData;
-import static org.lwjgl.opengl.GL15.glGenBuffers;
-import static org.lwjgl.opengl.GL20.*;
-import static org.lwjgl.opengl.GL30.*;
 import static org.lwjgl.system.MemoryStack.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
@@ -97,8 +90,6 @@ public class Window {
     }
 
     private void initWindow() {
-        // Setup an error callback. The default implementation
-        // will print the error message in System.err.
         GLFWErrorCallback.createPrint(System.err).set();
 
         // Initialize GLFW. Most GLFW functions will not work before doing this.
@@ -136,20 +127,11 @@ public class Window {
             );
         }
 
-
-        // Make the OpenGL context current
         glfwMakeContextCurrent(handle);
         // Enable v-sync
         glfwSwapInterval(1);
 
-        // Make the window visible
         glfwShowWindow(handle);
-
-        // This line is critical for LWJGL's interoperation with GLFW's
-        // OpenGL context, or any context that is managed externally.
-        // LWJGL detects the context that is current in the current thread,
-        // creates the GLCapabilities instance and makes the OpenGL
-        // bindings available for use.
         GL.createCapabilities();
     }
 
@@ -162,12 +144,13 @@ public class Window {
     private void loop() {
         // Set the clear color
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
-        // Run the rendering loop until the user has attempted to close
-        // the window or has pressed the ESCAPE key.
         while (!glfwWindowShouldClose(this.handle)) {
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
-            Obscura.getContext().getRenderer().render(new MatrixStack());
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            MatrixStack matrixStack = new MatrixStack();
+            Obscura.getContext().getRenderer().render(matrixStack);
+            if (!matrixStack.clear())
+                LOGGER.error("Matrix stack is not clear!");
+
 
             renderImgui();
 
@@ -195,21 +178,6 @@ public class Window {
             ImGui.renderPlatformWindowsDefault();
             GLFW.glfwMakeContextCurrent(backupWindowPtr);
         }
-    }
-
-    private static Vector3f position = new Vector3f(0, 0, -5);
-    private static Vector3f rotation = new Vector3f(0, 0, 0);
-    private static Vector3f scale = new Vector3f(1, 1, 1);
-
-    public static Matrix4f createModelMatrix(Vector3f position, Vector3f rotation, Vector3f scale) {
-        Matrix4f matrix = new Matrix4f();
-        matrix.identity();
-        matrix.translate(position);
-        matrix.rotateX((float) Math.toRadians(rotation.x));
-        matrix.rotateY((float) Math.toRadians(rotation.y));
-        matrix.rotateZ((float) Math.toRadians(rotation.z));
-        matrix.scale(scale);
-        return matrix;
     }
 
     public int getWidth() {
