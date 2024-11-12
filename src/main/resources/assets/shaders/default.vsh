@@ -14,7 +14,8 @@ out vec3 vertexNormal;
 out vec2 texCoord;
 
 void main() {
-    gl_Position = ProjMat * ViewMat * ModelMat * vec4(Position.x, Position.y, Position.z, 1.0);
+    vec3 instancedPos = Position + (gl_InstanceID * vec3(0.0, 0.0, 2.0));
+    gl_Position = ProjMat * ViewMat * ModelMat * vec4(instancedPos, 1.0);
     pos = Position;
     vec4 colors[3] = vec4[3](
     vec4(1.0, 0.0, 0.0, 1.0),  // Red for gl_VertexID == 0

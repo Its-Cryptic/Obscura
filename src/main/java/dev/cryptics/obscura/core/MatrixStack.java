@@ -2,6 +2,7 @@ package dev.cryptics.obscura.core;
 
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -17,9 +18,17 @@ public class MatrixStack {
         this.translate((float) x, (float) y, (float) z);
     }
 
+    public void translate(Vector3f vector3f) {
+        this.translate(vector3f.x, vector3f.y, vector3f.z);
+    }
+
     public void translate(float x, float y, float z) {
         Matrix4f matrix4f = this.stack.getLast();
         matrix4f.translate(x, y, z);
+    }
+
+    public void scale(Vector3f vector3f) {
+        this.scale(vector3f.x, vector3f.y, vector3f.z);
     }
 
     public void scale(float x, float y, float z) {

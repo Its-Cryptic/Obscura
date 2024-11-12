@@ -14,6 +14,7 @@ import java.util.List;
 
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL30.*;
+import static org.lwjgl.opengl.GL31.*;
 
 public abstract class IndexedModel {
     protected List<Vertex> vertices;
@@ -57,6 +58,7 @@ public abstract class IndexedModel {
         glEnableVertexAttribArray(1);
         glEnableVertexAttribArray(2);
         glDrawElements(GL_TRIANGLES, this.bakedIndices.size(), GL_UNSIGNED_INT, 0);
+        //glDrawElementsInstanced(GL_TRIANGLES, this.bakedIndices.size(), GL_UNSIGNED_INT, 0, 5);
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
         glDisableVertexAttribArray(2);

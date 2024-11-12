@@ -143,15 +143,16 @@ public class GameRenderer extends ObscuraRenderer {
         this.mainCamera.setPosition(new Vector3f(0, 4, 2));
         this.mainCamera.setPitch(-45);
         this.mainCamera.setYaw(0);
+        //this.mainCamera.lookAt(new Vector3f(0, 0, 0));
 
         matrixStack.push();
 
-        matrixStack.rotateAround(new Quaternionf().rotateY((float) Math.toRadians(degrees)), 0, 0, -2);
+        matrixStack.rotateAround(new Quaternionf().rotateY(Math.toRadians(degrees)), 0, 0, -2);
         suzanneModel.render(defaultShader, matrixStack);
 
         matrixStack.push();
         matrixStack.translate(0, 0, -2);
-        matrixStack.rotateAround(new Quaternionf().rotateY((float) Math.toRadians(degrees)), 0, 0, 2);
+        matrixStack.rotateAround(new Quaternionf().rotateY(Math.toRadians(degrees)), 0, 0, 2);
         suzanneModel.render(defaultShader, matrixStack);
         matrixStack.pop();
 
