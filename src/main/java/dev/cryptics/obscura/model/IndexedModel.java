@@ -57,11 +57,13 @@ public abstract class IndexedModel {
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
         glEnableVertexAttribArray(2);
-        glDrawElements(GL_TRIANGLES, this.bakedIndices.size(), GL_UNSIGNED_INT, 0);
-        //glDrawElementsInstanced(GL_TRIANGLES, this.bakedIndices.size(), GL_UNSIGNED_INT, 0, 5);
+        glEnableVertexAttribArray(3);
+        //glDrawElements(GL_TRIANGLES, this.bakedIndices.size(), GL_UNSIGNED_INT, 0);
+        glDrawElementsInstanced(GL_TRIANGLES, this.bakedIndices.size(), GL_UNSIGNED_INT, 0, 20);
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
         glDisableVertexAttribArray(2);
+        glDisableVertexAttribArray(3);
         glBindVertexArray(0);
     }
 

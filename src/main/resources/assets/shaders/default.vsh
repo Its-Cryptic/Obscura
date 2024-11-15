@@ -3,6 +3,7 @@
 layout (location = 0) in vec3 Position;
 layout (location = 1) in vec3 Normal;
 layout (location = 2) in vec2 TexCoord;
+layout (location = 3) in mat4 aInstanceModelMat;
 
 uniform mat4 ModelMat;
 uniform mat4 ViewMat;
@@ -14,8 +15,8 @@ out vec3 vertexNormal;
 out vec2 texCoord;
 
 void main() {
-    vec3 instancedPos = Position + (gl_InstanceID * vec3(0.0, 0.0, 2.0));
-    gl_Position = ProjMat * ViewMat * ModelMat * vec4(instancedPos, 1.0);
+    //vec3 instancedPos = Position + (gl_InstanceID * vec3(0.0, 0.0, 2.0));
+    gl_Position = ProjMat * ViewMat * aInstanceModelMat * ModelMat * vec4(Position, 1.0);
     pos = Position;
     vec4 colors[3] = vec4[3](
     vec4(1.0, 0.0, 0.0, 1.0),  // Red for gl_VertexID == 0

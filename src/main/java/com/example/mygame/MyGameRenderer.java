@@ -2,7 +2,7 @@ package com.example.mygame;
 
 import dev.cryptics.obscura.core.Camera;
 import dev.cryptics.obscura.core.MatrixStack;
-import dev.cryptics.obscura.core.ObscuraRenderer;
+import dev.cryptics.obscura.core.render.ObscuraRenderer;
 
 public class MyGameRenderer extends ObscuraRenderer {
     @Override

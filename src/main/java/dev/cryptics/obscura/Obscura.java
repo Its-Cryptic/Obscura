@@ -19,14 +19,20 @@ public class Obscura {
     private static ModelLoader modelLoader;
     private static ObscuraContext context;
     private static AbstractGame game;
+
     public static void main(String[] args) {
         LOGGER.info("Starting Obscura");
         context = new ObscuraContext(args);
         modelLoader = new ModelLoader();
-        launchGame(context);
-        game.start();
+        //game = GameLauncher.launchGame(context);
+        //game.start();
 
-        LOGGER.info("Finished Obscura");
+        try {
+            Thread.currentThread().setName("Main");
+            AbstractGame game = GameLauncher.launchGame(context);
+        } catch (Throwable throwable) {
+            LOGGER.error("Failed to set thread name", throwable);
+        }
     }
 
     public static void setWindow(Window window) {
@@ -37,44 +43,12 @@ public class Obscura {
         return window;
     }
 
-    public static void launchGame(ObscuraContext context) {
-        Class<? extends AbstractGame> gameClass = getGame();
-        if (gameClass == null) {
-            throw new IllegalStateException("No @ObscuraGame class found in package: " + System.getProperty("game.package", ""));
-        }
-        game = createGameInstance(gameClass);
-    }
-
-    @Nullable
-    private static Class<? extends AbstractGame> getGame() {
-        String packageName = System.getProperty("game.package", "");
-        Reflections reflections = packageName.isEmpty() ? new Reflections() : new Reflections(packageName);
-        return reflections.getTypesAnnotatedWith(ObscuraGame.class)
-                .stream()
-                .filter(AbstractGame.class::isAssignableFrom)
-                .map(aClass -> (Class<? extends AbstractGame>) aClass)
-                .findFirst()
-                .orElse(null);
-    }
-
-    private static <T extends AbstractGame> T createGameInstance(Class<T> gameClass) {
-        try {
-            Constructor<T> constructor = gameClass.getDeclaredConstructor(ObscuraContext.class);
-            List<Parameter> parameters = List.of(constructor.getParameters());
-            if (parameters.isEmpty()) {
-                return constructor.newInstance();
-            } else if (parameters.size() == 1 && parameters.get(0).getType().equals(ObscuraContext.class)) {
-                return constructor.newInstance(context);
-            } else {
-                throw new IllegalStateException("Invalid constructor parameters for @ObscuraGame class: " + gameClass.getName());
-            }
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to create game instance", e);
-        }
-    }
-
     public static ObscuraContext getContext() {
         return context;
+    }
+
+    public static AbstractGame getGame() {
+        return game;
     }
 
     public static ModelLoader getModelLoader() {

@@ -1,4 +1,7 @@
-package dev.cryptics.obscura.core;
+package dev.cryptics.obscura.core.render;
+
+import dev.cryptics.obscura.core.Camera;
+import dev.cryptics.obscura.core.MatrixStack;
 
 public abstract class ObscuraRenderer {
     public abstract void init();

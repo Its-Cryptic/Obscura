@@ -3,7 +3,6 @@ package dev.cryptics.obscura.core.render;
 import dev.cryptics.obscura.Obscura;
 import dev.cryptics.obscura.core.Camera;
 import dev.cryptics.obscura.core.MatrixStack;
-import dev.cryptics.obscura.core.ObscuraRenderer;
 import dev.cryptics.obscura.core.ResourceLocation;
 import dev.cryptics.obscura.core.render.shader.Shader;
 import dev.cryptics.obscura.core.render.shader.ShaderProgram;
@@ -16,7 +15,9 @@ import org.joml.Math;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+import org.lwjgl.system.MemoryUtil;
 
+import java.nio.FloatBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -134,6 +135,10 @@ public class GameRenderer extends ObscuraRenderer {
     }
 
     private int degrees = 0;
+    private float hash(float x) {
+        return Math.sin(x);
+    }
+
     @Override
     public void render(MatrixStack matrixStack) {
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
@@ -144,6 +149,21 @@ public class GameRenderer extends ObscuraRenderer {
         this.mainCamera.setPitch(-45);
         this.mainCamera.setYaw(0);
         //this.mainCamera.lookAt(new Vector3f(0, 0, 0));
+        int instanceCount = 20;
+        FloatBuffer matrixBuffer = MemoryUtil.memAllocFloat(instanceCount * 16);
+
+        for (int i = 0; i < instanceCount; i++) {
+            matrixStack.push();
+            Vector3f position = new Vector3f((float) Math.random(), (float) Math.random(), 0);
+            position.mul(2).sub(new Vector3f(1));
+            position.mul(i);
+            matrixStack.translate(position);
+            matrixStack.getMatrix().get(16 * i, matrixBuffer);
+            matrixStack.pop();
+        }
+
+        Obscura.getModelLoader().storeInstancedMatrixAttribute(suzanneModel, 3, matrixBuffer);
+
 
         matrixStack.push();
 

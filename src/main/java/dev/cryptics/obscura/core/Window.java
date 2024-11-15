@@ -29,7 +29,7 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryStack.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
-public class Window {
+public class Window implements Runnable {
     private static Logger LOGGER = LogManager.getLogger();
     private long handle;
     private int width, height;
@@ -49,6 +49,7 @@ public class Window {
         this.imguiLayer = new ImGuiLayer();
     }
 
+    @Override
     public void run() {
         System.out.println("Hello LWJGL " + Version.getVersion() + "!");
 
@@ -203,7 +204,7 @@ public class Window {
         this.width = framebufferWidth;
         this.height = framebufferHeight;
         glViewport(0, 0, framebufferWidth, framebufferHeight);
-
+        Obscura.getContext().getRenderer().getMainCamera().updateProjectionMatrix();
         this.framebufferSizeCallback.invoke(window, framebufferWidth, framebufferHeight);
     }
 
