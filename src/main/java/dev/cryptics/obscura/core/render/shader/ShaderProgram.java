@@ -2,10 +2,14 @@ package dev.cryptics.obscura.core.render.shader;
 
 import dev.cryptics.obscura.core.ResourceLocation;
 import org.joml.Matrix4f;
+import org.joml.Vector2f;
+import org.joml.Vector3f;
+import org.joml.Vector4f;
 import org.lwjgl.system.MemoryStack;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import static org.lwjgl.opengl.GL20.*;
 
@@ -43,18 +47,53 @@ public class ShaderProgram implements IShader {
         uniforms.put(uniformName, uniformLocation);
     }
 
+    public void setUniform(String uniformName, float value) {
+        ifUniformPresent(uniformName, uniformLocation -> {
+            glUniform1f(uniformLocation, value);
+        });
+    }
+
+    public void setUniform(String uniformName, Vector2f vector2f) {
+        ifUniformPresent(uniformName, uniformLocation -> {
+            glUniform2f(uniformLocation, vector2f.x, vector2f.y);
+        });
+    }
+
+    public void setUniform(String uniformName, Vector3f vector3f) {
+        ifUniformPresent(uniformName, uniformLocation -> {
+            glUniform3f(uniformLocation, vector3f.x, vector3f.y, vector3f.z);
+        });
+    }
+
+    public void setUniform(String uniformName, Vector4f vector4f) {
+        ifUniformPresent(uniformName, uniformLocation -> {
+            glUniform4f(uniformLocation, vector4f.x, vector4f.y, vector4f.z, vector4f.w);
+        });
+    }
+
     public void setUniform(String uniformName, Matrix4f matrix4f) {
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-            glUniformMatrix4fv(uniforms.get(uniformName), false, matrix4f.get(stack.mallocFloat(16)));
-        }
+        ifUniformPresent(uniformName, uniformLocation -> {
+            try (MemoryStack stack = MemoryStack.stackPush()) {
+                glUniformMatrix4fv(uniformLocation, false, matrix4f.get(stack.mallocFloat(16)));
+            }
+        });
     }
 
     public void setUniform(String uniformName, int value) {
-        glUniform1i(uniforms.get(uniformName), value);
+        ifUniformPresent(uniformName, uniformLocation -> {
+            glUniform1i(uniformLocation, value);
+        });
     }
 
     public void cleanup() {
         glDeleteProgram(this.programId);
+    }
+
+    private void ifUniformPresent(String uniformName, Consumer<Integer> consumer) {
+        Integer uniformLocation = uniforms.get(uniformName);
+        if (uniformLocation != null) {
+            consumer.accept(uniformLocation);
+        }
     }
 
     /**

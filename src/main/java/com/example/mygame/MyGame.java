@@ -1,10 +1,12 @@
 package com.example.mygame;
 
+import dev.cryptics.obscura.Obscura;
 import dev.cryptics.obscura.config.ObscuraContext;
 import dev.cryptics.obscura.core.*;
 import dev.cryptics.obscura.core.render.GameRenderer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.lwjgl.glfw.GLFW;
 
 @ObscuraGame(id = "my_game")
 public class MyGame extends AbstractGame {
@@ -19,6 +21,9 @@ public class MyGame extends AbstractGame {
                 .setWindowSize(1280, 720)
                 .addKeyCallback((window, key, scancode, action, mods) -> {
                     LOGGER.info("Pressed key: " + key);
+                    if (key == GLFW.GLFW_KEY_M && action == GLFW.GLFW_PRESS) {
+                        Obscura.getWindow().setWindowName("My Game :D & M");
+                    }
                 })
                 .addFramebufferSizeCallback((window, width, height) -> {
                     LOGGER.info("Resized window to: " + width + "x" + height);

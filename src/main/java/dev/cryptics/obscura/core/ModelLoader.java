@@ -25,9 +25,9 @@ public class ModelLoader {
     public int loadToVAO(IndexedModel indexedModel) {
         int vaoID = createVAO(indexedModel);
         storeIndexBuffer(indexedModel.getIndices());
-        storeInAttributeList(0, 3, indexedModel.getPositions(), 3);
-        storeInAttributeList(1, 3, indexedModel.getNormals(), 3);
-        storeInAttributeList(2, 2, indexedModel.getTextureCoordinates(), 2);
+        storeInAttributeList(0, 3, indexedModel.getPositions(), 3, false);
+        storeInAttributeList(1, 3, indexedModel.getNormals(), 3, true);
+        storeInAttributeList(2, 2, indexedModel.getTextureCoordinates(), 2, false);
         unbind();
         return vaoID;
     }
@@ -47,12 +47,12 @@ public class ModelLoader {
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
     }
 
-    private void storeInAttributeList(int attributeNumber, int coordinateSize, float[] data, int stride) {
+    private void storeInAttributeList(int attributeNumber, int coordinateSize, float[] data, int stride, boolean normalized) {
         int vbo = glGenBuffers();
         vbos.add(vbo);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBufferData(GL_ARRAY_BUFFER, data, GL_STATIC_DRAW);
-        glVertexAttribPointer(attributeNumber, coordinateSize, GL_FLOAT, false, stride * Float.BYTES, 0);
+        glVertexAttribPointer(attributeNumber, coordinateSize, GL_FLOAT, normalized, stride * Float.BYTES, 0);
         glEnableVertexAttribArray(0);
     }
 

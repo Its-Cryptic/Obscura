@@ -11,7 +11,7 @@ uniform mat4 ProjMat;
 
 out vec4 vertexColor;
 out vec3 pos;
-out vec3 vertexNormal;
+out vec4 vertexNormalView;
 out vec2 texCoord;
 
 void main() {
@@ -23,8 +23,8 @@ void main() {
     vec4(0.0, 1.0, 0.0, 1.0),  // Green for gl_VertexID == 1
     vec4(0.0, 0.0, 1.0, 1.0)   // Blue for gl_VertexID == 2
     );
-    //vertexColor = colors[gl_VertexID % 3];
-    vertexColor = vec4(Normal + 0.5, 1.0) * colors[gl_VertexID % 3];
-    vertexNormal = Normal;
+    vertexColor = colors[gl_InstanceID % 3];
+    //vertexNormalView = ViewMat * ModelMat * vec4(Normal, 0.0);
+    vertexNormalView = normalize(ModelMat * vec4(Normal, 0.0));
     texCoord = TexCoord;
 }

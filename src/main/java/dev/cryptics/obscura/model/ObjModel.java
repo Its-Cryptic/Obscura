@@ -1,7 +1,7 @@
 package dev.cryptics.obscura.model;
 
 /**
- * An {@link IndexedModel} that is parsed from an Wavefront OBJ file.
+ * An {@link IndexedModel} that is parsed from a Wavefront OBJ file.
  */
 public class ObjModel extends IndexedModel {
     public ObjModel(String modelId) {

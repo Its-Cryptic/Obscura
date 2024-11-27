@@ -2,6 +2,7 @@ package dev.cryptics.obscura.core;
 
 import dev.cryptics.obscura.Obscura;
 import dev.cryptics.obscura.core.consts.*;
+import dev.cryptics.obscura.core.render.framebuffer.FBO;
 import dev.cryptics.obscura.core.render.framebuffer.FrameBuffer;
 import dev.cryptics.obscura.core.render.shader.ShaderProgram;
 import dev.cryptics.obscura.core.render.shader.ShaderType;
@@ -193,6 +194,14 @@ public class Window implements Runnable {
         return this.handle;
     }
 
+    public ImGuiLayer getImguiLayer() {
+        return this.imguiLayer;
+    }
+
+    public void setWindowName(String name) {
+        glfwSetWindowTitle(this.handle, name);
+    }
+
     public void onKeyCallback(long window, int key, int scancode, int action, int mods) {
         if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
             glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
@@ -205,6 +214,7 @@ public class Window implements Runnable {
         this.height = framebufferHeight;
         glViewport(0, 0, framebufferWidth, framebufferHeight);
         Obscura.getContext().getRenderer().getMainCamera().updateProjectionMatrix();
+        FBO.fbos.stream().filter(FBO::isAutoResize).forEach(fbo -> fbo.resize(framebufferWidth, framebufferHeight));
         this.framebufferSizeCallback.invoke(window, framebufferWidth, framebufferHeight);
     }
 

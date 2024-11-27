@@ -4,6 +4,7 @@ import dev.cryptics.obscura.Obscura;
 import dev.cryptics.obscura.core.Camera;
 import dev.cryptics.obscura.core.MatrixStack;
 import dev.cryptics.obscura.core.ResourceLocation;
+import dev.cryptics.obscura.core.render.framebuffer.FBO;
 import dev.cryptics.obscura.core.render.shader.Shader;
 import dev.cryptics.obscura.core.render.shader.ShaderProgram;
 import dev.cryptics.obscura.core.render.shader.ShaderType;
@@ -11,10 +12,8 @@ import dev.cryptics.obscura.model.IndexedModel;
 import dev.cryptics.obscura.model.ObjModel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.joml.*;
 import org.joml.Math;
-import org.joml.Matrix4f;
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.FloatBuffer;
@@ -37,10 +36,12 @@ public class GameRenderer extends ObscuraRenderer {
     private ShaderProgram defaultShader;
     private ShaderProgram screenShader;
 
-    private int fbo;
-    private int textureColorBuffer;
-    private int normalColorBuffer;
-    private int depthBuffer;
+//    private int fbo;
+//    private int textureColorBuffer;
+//    private int normalColorBuffer;
+//    private int depthBuffer;
+
+    private FBO fbo;
 
     private int screenVAO;
     private int screenVBO;
@@ -62,48 +63,18 @@ public class GameRenderer extends ObscuraRenderer {
             defaultShader.createUniform("ViewMat");
             defaultShader.createUniform("ProjMat");
 
-            screenShader.createUniform("screenTexture");
-            screenShader.setUniform("screenTexture", 0);
+            glUseProgram(screenShader.getId());
+            screenShader.createUniform("gAlbedoSpec");
+            screenShader.setUniform("gAlbedoSpec", 0);
+            screenShader.createUniform("gNormal");
+            screenShader.setUniform("gNormal", 1);
+            screenShader.createUniform("Resolution");
         } catch (Exception e) {
             LOGGER.error("Failed to create uniform in default shader", e);
         }
 
-        // Create framebuffer
-        fbo = glGenFramebuffers();
-        LOGGER.info("FBO: " + fbo);
-        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
-        textureColorBuffer = glGenTextures();
-        normalColorBuffer = glGenTextures();
-        depthBuffer = glGenTextures();
-        glBindTexture(GL_TEXTURE_2D, depthBuffer);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, Obscura.getWindow().getWidth(), Obscura.getWindow().getHeight(), 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthBuffer, 0);
-
-        glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, Obscura.getWindow().getWidth(), Obscura.getWindow().getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorBuffer, 0);
-
-        glBindTexture(GL_TEXTURE_2D, normalColorBuffer);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, Obscura.getWindow().getWidth(), Obscura.getWindow().getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normalColorBuffer, 0);
-
-        int[] drawBuffers = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
-        glDrawBuffers(drawBuffers);
-
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            LOGGER.error("Framebuffer is not complete!");
-        } else {
-            LOGGER.info("Framebuffer is complete!");
-        }
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        this.fbo = new FBO(true);
+        this.fbo.init();
 
         suzanneModel.loadModel();
         suzanneModel.init();
@@ -141,53 +112,68 @@ public class GameRenderer extends ObscuraRenderer {
 
     @Override
     public void render(MatrixStack matrixStack) {
-        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-        glEnable(GL_DEPTH_TEST);
+        // 1. Bind FBO for Geometry Pass
+        // --------------------------------------------------------------
+        this.fbo.bind();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glEnable(GL_DEPTH_TEST);
 
-        this.mainCamera.setPosition(new Vector3f(0, 4, 2));
+        this.mainCamera.setPosition(new Vector3f(8, 12, 0));
         this.mainCamera.setPitch(-45);
-        this.mainCamera.setYaw(0);
-        //this.mainCamera.lookAt(new Vector3f(0, 0, 0));
-        int instanceCount = 20;
+        this.mainCamera.setYaw(-45);
+
+        // 2. Generate 1000 model matrices for instanced rendering
+        // --------------------------------------------------------------
+        int instanceCount = 1000;
         FloatBuffer matrixBuffer = MemoryUtil.memAllocFloat(instanceCount * 16);
 
-        for (int i = 0; i < instanceCount; i++) {
-            matrixStack.push();
-            Vector3f position = new Vector3f((float) Math.random(), (float) Math.random(), 0);
-            position.mul(2).sub(new Vector3f(1));
-            position.mul(i);
-            matrixStack.translate(position);
-            matrixStack.getMatrix().get(16 * i, matrixBuffer);
-            matrixStack.pop();
+        float scale = Obscura.getWindow().getImguiLayer().sliderValue2[0];
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                for (int k = 0; k < 10; k++) {
+                    matrixStack.push();
+                    matrixStack.translate(i * scale, j * scale, k * scale);
+                    matrixStack.getMatrix().get(16 * (i + j * 10 + k * 100), matrixBuffer);
+                    matrixStack.pop();
+                }
+            }
         }
 
         Obscura.getModelLoader().storeInstancedMatrixAttribute(suzanneModel, 3, matrixBuffer);
 
-
+        // 3. Render the model with instanced rendering
+        // --------------------------------------------------------------
         matrixStack.push();
-
-        matrixStack.rotateAround(new Quaternionf().rotateY(Math.toRadians(degrees)), 0, 0, -2);
+        matrixStack.translate(-5, 0, -14);
+        //matrixStack.scale(0.2f, 0.2f, 0.2f);
+        matrixStack.rotate(new Quaternionf().rotateY(Math.toRadians(degrees)));
         suzanneModel.render(defaultShader, matrixStack);
-
-        matrixStack.push();
-        matrixStack.translate(0, 0, -2);
-        matrixStack.rotateAround(new Quaternionf().rotateY(Math.toRadians(degrees)), 0, 0, 2);
-        suzanneModel.render(defaultShader, matrixStack);
-        matrixStack.pop();
-
         matrixStack.pop();
 
         degrees += 1;
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glDisable(GL_DEPTH_TEST);
-        glClear(GL_COLOR_BUFFER_BIT);
+        // 4. Unbind FBO and render to screen
+        // --------------------------------------------------------------
+        this.fbo.unbind();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glUseProgram(screenShader.getId());
+        screenShader.setUniform("Resolution", new Vector2f(Obscura.getWindow().getWidth(), Obscura.getWindow().getHeight()));
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, this.fbo.getAlbedoID());
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, this.fbo.getNormalID());
+
         glBindVertexArray(screenVAO);
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glBindVertexArray(0);
+
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, this.fbo.getFbo()); // read from our framebuffer
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0); // write to default framebuffer
+        int width = Obscura.getWindow().getWidth();
+        int height = Obscura.getWindow().getHeight();
+        glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+        this.fbo.unbind();
     }
 
     @Override
@@ -197,10 +183,7 @@ public class GameRenderer extends ObscuraRenderer {
         screenShader.cleanup();
 
         // Delete framebuffer
-        glDeleteFramebuffers(fbo);
-        glDeleteTextures(textureColorBuffer);
-        glDeleteTextures(normalColorBuffer);
-        glDeleteTextures(depthBuffer);
+        this.fbo.cleanup();
 
         // Delete Screen VAO and VBO
         glDeleteVertexArrays(screenVAO);

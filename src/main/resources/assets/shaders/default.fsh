@@ -2,15 +2,15 @@
 
 in vec4 vertexColor;
 in vec3 pos;
-in vec3 vertexNormal;
+in vec4 vertexNormalView;
 in vec2 texCoord;
 
 layout (location = 0) out vec4 fragColor;
-layout (location = 1) out vec4 gNormal;
+layout (location = 1) out vec4 viewNormal;
+
 
 
 void main() {
-    //fragColor = vec4(texCoord, 0.0, 1.0);
-    gNormal = vec4(normalize(vertexNormal), 1.0);
+    viewNormal = vertexNormalView;
     fragColor = vertexColor;
 }
