@@ -14,6 +14,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joml.*;
 import org.joml.Math;
+import org.lwjgl.glfw.GLFW;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.FloatBuffer;
@@ -25,6 +26,7 @@ import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL20.glDrawBuffers;
 import static org.lwjgl.opengl.GL30.*;
 import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER_COMPLETE;
+import static org.lwjgl.opengl.GL43.*;
 
 public class GameRenderer extends ObscuraRenderer {
     private static final Logger LOGGER = LogManager.getLogger();
@@ -35,6 +37,14 @@ public class GameRenderer extends ObscuraRenderer {
     private final IndexedModel suzanneModel = new ObjModel("suzanne");
     private ShaderProgram defaultShader;
     private ShaderProgram screenShader;
+    private ShaderProgram computeShader;
+    private int computeTexture;
+    private int computeWidth = 16;
+    private int computeHeight = 16;
+
+    private int[] maxWorkGroupSize = new int[3];
+    private int[] maxWorkGroupCount = new int[3];
+    private int maxWorkGroupInvocations;
 
 //    private int fbo;
 //    private int textureColorBuffer;
@@ -57,6 +67,34 @@ public class GameRenderer extends ObscuraRenderer {
                 .addShader(ShaderType.VERTEX, "screen")
                 .addShader(ShaderType.FRAGMENT, "screen")
                 .build();
+
+        computeShader = ShaderProgram.Builder.of("compute")
+                .addShader(ShaderType.COMPUTE, "compute/compute")
+                .build();
+
+        computeTexture = glGenTextures();
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, computeTexture);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, this.computeWidth, this.computeHeight, 0, GL_RGBA, GL_FLOAT, 0);
+
+        glBindImageTexture(0, computeTexture, 0, false, 0, GL_READ_WRITE, GL_RGBA32F);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, computeTexture);
+        LOGGER.info("Compute texture: " + computeTexture);
+
+        for (int i = 0; i < 3; i++) {
+            glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, i, maxWorkGroupSize);
+            glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, i, maxWorkGroupCount);
+            //LOGGER.info("Max work group size: " + maxWorkGroupSize[i]);
+            //LOGGER.info("Max work group count: " + maxWorkGroupCount[i]);
+        }
+        maxWorkGroupInvocations = glGetInteger(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS);
+        //LOGGER.info("Max work group invocations: " + maxWorkGroupInvocations);
 
         try {
             defaultShader.createUniform("ModelMat");
@@ -152,12 +190,21 @@ public class GameRenderer extends ObscuraRenderer {
 
         degrees += 1;
 
+        // 3.5. Compute Shader
+        // --------------------------------------------------------------
+        computeShader.bind();
+        computeShader.setUniform("t", (float) GLFW.glfwGetTime());
+        glDispatchCompute(this.computeWidth, this.computeHeight, 1);
+        // make sure writing to image has finished before read
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+
         // 4. Unbind FBO and render to screen
         // --------------------------------------------------------------
         this.fbo.unbind();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glUseProgram(screenShader.getId());
+        screenShader.bind();
         screenShader.setUniform("Resolution", new Vector2f(Obscura.getWindow().getWidth(), Obscura.getWindow().getHeight()));
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, this.fbo.getAlbedoID());
@@ -181,6 +228,8 @@ public class GameRenderer extends ObscuraRenderer {
         // Delete shaders
         defaultShader.cleanup();
         screenShader.cleanup();
+        computeShader.cleanup();
+        glDeleteTextures(computeTexture);
 
         // Delete framebuffer
         this.fbo.cleanup();

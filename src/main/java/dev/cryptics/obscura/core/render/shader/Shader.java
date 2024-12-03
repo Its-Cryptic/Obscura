@@ -17,7 +17,7 @@ public class Shader implements IShader {
     }
 
     public void compile() throws Exception {
-        this.shaderId = glCreateShader(this.type.getType());
+        this.shaderId = this.type.create();
         glShaderSource(this.shaderId, this.source);
         glCompileShader(this.shaderId);
         if (glGetShaderi(this.shaderId, GL_COMPILE_STATUS) == GL_FALSE) {

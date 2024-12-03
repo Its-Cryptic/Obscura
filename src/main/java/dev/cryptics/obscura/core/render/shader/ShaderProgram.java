@@ -32,6 +32,10 @@ public class ShaderProgram implements IShader {
         glAttachShader(this.programId, shader.getId());
     }
 
+    public void bind() {
+        glUseProgram(this.programId);
+    }
+
     @Override
     public int getId() {
         return this.programId;

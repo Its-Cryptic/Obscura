@@ -101,6 +101,7 @@ public class Window implements Runnable {
         glfwDefaultWindowHints(); // optional, the current window hints are already the default
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE); // the window will stay hidden after creation
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE); // the window will be resizable
+        LOGGER.info("OpenGL version: " + glfwGetVersionString());
 
         // Create the window
         handle = glfwCreateWindow(this.width, this.height, this.title, NULL, NULL);

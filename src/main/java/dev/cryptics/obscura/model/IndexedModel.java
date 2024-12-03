@@ -47,7 +47,7 @@ public abstract class IndexedModel {
     }
 
     public void render(ShaderProgram shaderProgram, MatrixStack matrixStack) {
-        glUseProgram(shaderProgram.getId());
+        shaderProgram.bind();
 
         shaderProgram.setUniform("ModelMat", matrixStack.getMatrix());
         shaderProgram.setUniform("ViewMat", Obscura.getContext().getRenderer().getMainCamera().getViewMatrix());
