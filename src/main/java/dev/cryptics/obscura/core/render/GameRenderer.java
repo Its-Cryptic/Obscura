@@ -14,9 +14,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joml.*;
 import org.joml.Math;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.system.MemoryUtil;
 
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,6 +43,7 @@ public class GameRenderer extends ObscuraRenderer {
     private int computeTexture;
     private int computeWidth = 16;
     private int computeHeight = 16;
+    private int ssbo;
 
     private int[] maxWorkGroupSize = new int[3];
     private int[] maxWorkGroupCount = new int[3];
@@ -68,24 +71,35 @@ public class GameRenderer extends ObscuraRenderer {
                 .addShader(ShaderType.FRAGMENT, "screen")
                 .build();
 
-        computeShader = ShaderProgram.Builder.of("compute")
-                .addShader(ShaderType.COMPUTE, "compute/compute")
+        computeShader = ShaderProgram.Builder.of("compute_ssbo")
+                .addShader(ShaderType.COMPUTE, "compute/compute_ssbo")
                 .build();
 
-        computeTexture = glGenTextures();
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, computeTexture);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, this.computeWidth, this.computeHeight, 0, GL_RGBA, GL_FLOAT, 0);
+//        computeTexture = glGenTextures();
+//        glActiveTexture(GL_TEXTURE0);
+//        glBindTexture(GL_TEXTURE_2D, computeTexture);
+//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+//        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, this.computeWidth, this.computeHeight, 0, GL_RGBA, GL_FLOAT, 0);
+//
+//        glBindImageTexture(0, computeTexture, 0, false, 0, GL_READ_WRITE, GL_RGBA32F);
+//
+//        glActiveTexture(GL_TEXTURE0);
+//        glBindTexture(GL_TEXTURE_2D, computeTexture);
+//        LOGGER.info("Compute texture: " + computeTexture);
 
-        glBindImageTexture(0, computeTexture, 0, false, 0, GL_READ_WRITE, GL_RGBA32F);
+        float[] data = new float[10];
+        FloatBuffer buffer = BufferUtils.createFloatBuffer(10);
+        buffer.put(data);
+        buffer.flip();
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, computeTexture);
-        LOGGER.info("Compute texture: " + computeTexture);
+        ssbo = glGenBuffers();
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, buffer, GL_DYNAMIC_COPY);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
         for (int i = 0; i < 3; i++) {
             glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, i, maxWorkGroupSize);
@@ -193,10 +207,20 @@ public class GameRenderer extends ObscuraRenderer {
         // 3.5. Compute Shader
         // --------------------------------------------------------------
         computeShader.bind();
-        computeShader.setUniform("t", (float) GLFW.glfwGetTime());
         glDispatchCompute(this.computeWidth, this.computeHeight, 1);
         // make sure writing to image has finished before read
-        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+        //glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT); // GL_SHADER_STORAGE_BARRIER_BIT
+        glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+
+        LOGGER.info("SSBO: " + ssbo);
+        FloatBuffer ssboData = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY).asFloatBuffer();
+        for (int i = 0; i < 10; i++) {
+            LOGGER.info("SSBO[" + i + "]: " + ssboData.get(i));
+        }
+        glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+
 
 
         // 4. Unbind FBO and render to screen
@@ -229,7 +253,7 @@ public class GameRenderer extends ObscuraRenderer {
         defaultShader.cleanup();
         screenShader.cleanup();
         computeShader.cleanup();
-        glDeleteTextures(computeTexture);
+        //glDeleteTextures(computeTexture);
 
         // Delete framebuffer
         this.fbo.cleanup();
