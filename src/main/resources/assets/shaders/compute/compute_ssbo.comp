@@ -7,5 +7,5 @@ layout(std430, binding=0) buffer shader_data {
 };
 
 void main() {
-	Position[gl_GlobalInvocationID.x] = float(gl_GlobalInvocationID.x * 2.5);
+	Position[gl_GlobalInvocationID.x + 10*gl_GlobalInvocationID.y] = float(gl_GlobalInvocationID.x + 10*gl_GlobalInvocationID.y);
 }

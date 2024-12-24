@@ -3,7 +3,7 @@ package com.example.mygame;
 import dev.cryptics.obscura.Obscura;
 import dev.cryptics.obscura.config.ObscuraContext;
 import dev.cryptics.obscura.core.*;
-import dev.cryptics.obscura.core.render.GameRenderer;
+import dev.cryptics.obscura.launcher.ObscuraGame;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.glfw.GLFW;

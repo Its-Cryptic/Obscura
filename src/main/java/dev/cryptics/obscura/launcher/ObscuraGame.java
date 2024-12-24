@@ -1,4 +1,4 @@
-package dev.cryptics.obscura.core;
+package dev.cryptics.obscura.launcher;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

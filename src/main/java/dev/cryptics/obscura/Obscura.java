@@ -3,18 +3,12 @@ package dev.cryptics.obscura;
 import dev.cryptics.obscura.config.ObscuraContext;
 import dev.cryptics.obscura.core.AbstractGame;
 import dev.cryptics.obscura.core.ModelLoader;
-import dev.cryptics.obscura.core.ObscuraGame;
 import dev.cryptics.obscura.core.Window;
+import dev.cryptics.obscura.launcher.GameLauncher;
 import org.apache.logging.log4j.*;
-import org.reflections.Reflections;
-
-import javax.annotation.Nullable;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Parameter;
-import java.util.List;
 
 public class Obscura {
-    public static final Logger LOGGER = LogManager.getLogger();
+    public static final Logger LOGGER = LogManager. getLogger();
     private static Window window;
     private static ModelLoader modelLoader;
     private static ObscuraContext context;

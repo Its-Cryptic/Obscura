@@ -75,6 +75,8 @@ public class GameRenderer extends ObscuraRenderer {
                 .addShader(ShaderType.COMPUTE, "compute/compute_ssbo")
                 .build();
 
+        //unbind
+        glUseProgram(0);
 //        computeTexture = glGenTextures();
 //        glActiveTexture(GL_TEXTURE0);
 //        glBindTexture(GL_TEXTURE_2D, computeTexture);
@@ -90,8 +92,8 @@ public class GameRenderer extends ObscuraRenderer {
 //        glBindTexture(GL_TEXTURE_2D, computeTexture);
 //        LOGGER.info("Compute texture: " + computeTexture);
 
-        float[] data = new float[10];
-        FloatBuffer buffer = BufferUtils.createFloatBuffer(10);
+        float[] data = new float[100];
+        FloatBuffer buffer = BufferUtils.createFloatBuffer(100);
         buffer.put(data);
         buffer.flip();
 
@@ -214,9 +216,9 @@ public class GameRenderer extends ObscuraRenderer {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
 
-        LOGGER.info("SSBO: " + ssbo);
+        //LOGGER.info("SSBO: " + ssbo);
         FloatBuffer ssboData = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY).asFloatBuffer();
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
             LOGGER.info("SSBO[" + i + "]: " + ssboData.get(i));
         }
         glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);

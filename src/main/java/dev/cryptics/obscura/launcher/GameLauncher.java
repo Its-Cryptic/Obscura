@@ -1,8 +1,8 @@
-package dev.cryptics.obscura;
+package dev.cryptics.obscura.launcher;
 
+import dev.cryptics.obscura.Obscura;
 import dev.cryptics.obscura.config.ObscuraContext;
 import dev.cryptics.obscura.core.AbstractGame;
-import dev.cryptics.obscura.core.ObscuraGame;
 import org.reflections.Reflections;
 
 import javax.annotation.Nullable;
