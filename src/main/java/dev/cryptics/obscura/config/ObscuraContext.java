@@ -35,6 +35,10 @@ public class ObscuraContext {
         rendererThread.start();
     }
 
+    public void setRenderer(ObscuraRenderer renderer) {
+        this.renderer = renderer;
+    }
+
     public ObscuraRenderer getRenderer() {
         return renderer;
     }

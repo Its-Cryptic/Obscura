@@ -1,0 +1,80 @@
+#version 460
+struct Particle {
+    vec3 position;
+    vec3 velocity;
+    vec3 accel;
+    vec4 color;
+    float life;
+};
+
+struct EmitterSettings {
+    vec4 minColor, maxColor;
+    vec3 minOffset, maxOffset;
+    vec3 minVelocity, maxVelocity;
+    vec3 minAccel, maxAccel;
+    float minLife, maxLife;
+    vec3 position;
+};
+
+layout(std430, binding = 0) writeonly restrict buffer SSBO_0 {
+    Particle particles[];
+};
+
+layout(std430, binding = 1) coherent restrict buffer SSBO_1 {
+    int count;
+    int indices[];
+} freelist;
+
+layout(location = 0) uniform int u_particlesToSpawn;
+layout(location = 1) uniform EmitterSettings u_emitter;
+
+shared uint seed = 0;
+
+// random number generator
+uint xorshift32(inout uint s) {
+    s ^= s << 13;
+    s ^= s >> 17;
+    s ^= s << 5;
+    return s;
+}
+
+// random number generator
+float rng1(float min, float max) {
+    return min + float(xorshift32(seed)) / float(0xFFFFFFFF) * (max - min);
+}
+
+vec2 rng2(vec2 min, vec2 max) {
+    return vec2(rng1(min.x, max.x), rng1(min.y, max.y));
+}
+
+
+
+// make a particle with random attributes
+void MakeParticle(out Particle particle) {
+    particle.life =         rng1(u_emitter.minLife, u_emitter.maxLife);
+    particle.velocity.xyz = rng3(u_emitter.minVelocity.xyz, u_emitter.maxVelocity.xyz);
+    particle.accel.xyz =    rng3(u_emitter.minAccel.xyz, u_emitter.maxAccel.xyz);
+    particle.color.rgba =   rng4(u_emitter.minColor.rgba, u_emitter.maxColor.rgba);
+
+    // we could use a transform matrix here
+    vec3 pos = rng3(u_emitter.minOffset.xyz, u_emitter.maxOffset.xyz);
+    particle.position = u_emitter.position + pos;
+}
+
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+
+    if (index >= u_particlesToSpawn)
+    return;
+
+    // undo decrement and return if nothing in freelist
+    int freeListIndex = atomicAdd(freelist.count, -1) - 1;
+    if (freeListIndex < 0) {
+        atomicAdd(freelist.count, 1);
+        return;
+    }
+
+    int particleIndex = freelist.indices[freeListIndex];
+    MakeParticle(particlesShared[particleIndex]);
+}

@@ -1,5 +1,6 @@
 package dev.cryptics.obscura.model;
 
+import com.example.mygame.ParticleSimRenderer;
 import dev.cryptics.obscura.Obscura;
 import dev.cryptics.obscura.core.MatrixStack;
 import dev.cryptics.obscura.core.render.GameRenderer;
@@ -57,9 +58,9 @@ public abstract class IndexedModel {
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
         glEnableVertexAttribArray(2);
-        glEnableVertexAttribArray(3);
+        //glEnableVertexAttribArray(3);
         //glDrawElements(GL_TRIANGLES, this.bakedIndices.size(), GL_UNSIGNED_INT, 0);
-        glDrawElementsInstanced(GL_TRIANGLES, this.bakedIndices.size(), GL_UNSIGNED_INT, 0, 1000);
+        glDrawElementsInstanced(GL_TRIANGLES, this.bakedIndices.size(), GL_UNSIGNED_INT, 0, ((ParticleSimRenderer) Obscura.getContext().getRenderer()).particleCount);
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
         glDisableVertexAttribArray(2);

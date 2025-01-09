@@ -25,8 +25,10 @@ public class ImGuiLayer {
         float imageHeight = isLandscape ? sliderValue3[0] / aspectRatio : sliderValue3[0];
 
 
-        ImGui.image(sliderValue[0], (float) imageWidth, (float) imageHeight, 0, 1, 1, 0);
+        //ImGui.image(sliderValue[0], (float) imageWidth, (float) imageHeight, 0, 1, 1, 0);
 
         ImGui.end();
+        ImGui.showDemoWindow();
+
     }
 }

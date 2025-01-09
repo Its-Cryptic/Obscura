@@ -34,8 +34,6 @@ public class GameRenderer extends ObscuraRenderer {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final Map<ResourceLocation, Shader> shaders = new HashMap<>();
     private Camera mainCamera = new Camera(90.0f, 0.1f, 1000.0f);
-    private static Matrix4f projectionMatrix = new Matrix4f();
-
     private final IndexedModel suzanneModel = new ObjModel("suzanne");
     private ShaderProgram defaultShader;
     private ShaderProgram screenShader;

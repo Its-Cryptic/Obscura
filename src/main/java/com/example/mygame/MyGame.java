@@ -29,6 +29,7 @@ public class MyGame extends AbstractGame {
                     LOGGER.info("Resized window to: " + width + "x" + height);
                 })
         );
+        context.setRenderer(new ParticleSimRenderer());
         LOGGER.info("Hello, Obscura!");
     }
 
