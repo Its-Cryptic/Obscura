@@ -24,7 +24,7 @@ public class ParticleSimRenderer extends ObscuraRenderer {
     private static final Logger LOGGER = LogManager.getLogger();
     private Camera camera = new Camera(90, 0.1f, 1000f);
 
-    private final IndexedModel suzanneModel = new ObjModel("suzanne");
+    private final IndexedModel suzanneModel = new ObjModel("cube");
 
     private ShaderProgram particleUpdateShader;
     private ShaderProgram particleRenderShader;
@@ -60,9 +60,9 @@ public class ParticleSimRenderer extends ObscuraRenderer {
             data[i * this.floatPerParticle + 3] = (float) 0.0; // Padding
 
             // Velocity
-            data[i * this.floatPerParticle + 4] = randomBetween(-1, 1) * 5;
-            data[i * this.floatPerParticle + 5] = randomBetween(-1, 1) * 5;
-            data[i * this.floatPerParticle + 6] = randomBetween(-1, 1) * 5;
+            data[i * this.floatPerParticle + 4] = randomBetween(-1, 1) * 0;
+            data[i * this.floatPerParticle + 5] = randomBetween(-1, 1) * 0;
+            data[i * this.floatPerParticle + 6] = randomBetween(-1, 1) * 0;
             data[i * this.floatPerParticle + 7] = (float) 0.0; // Padding
         }
         FloatBuffer buffer = BufferUtils.createFloatBuffer(this.particleCount * this.floatPerParticle);
@@ -117,6 +117,7 @@ public class ParticleSimRenderer extends ObscuraRenderer {
 
         matrixStack.push();
         matrixStack.translate(-5, 0, -14);
+        matrixStack.scale(0.1f, 0.1f, 0.1f);
         this.suzanneModel.render(particleRenderShader, matrixStack);
         matrixStack.pop();
     }
