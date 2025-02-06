@@ -19,6 +19,8 @@ public class MyGame extends AbstractGame {
         context.buildWindow(windowBuilder -> windowBuilder
                 .setTitle("My Game :D")
                 .setWindowSize(1280, 720)
+                //.setWindowSize(1920, 1080)
+                .setWindowSize(2560, 1400)
                 .addKeyCallback((window, key, scancode, action, mods) -> {
                     LOGGER.info("Pressed key: " + key);
                     if (key == GLFW.GLFW_KEY_M && action == GLFW.GLFW_PRESS) {

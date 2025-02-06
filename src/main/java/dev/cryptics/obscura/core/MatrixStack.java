@@ -36,6 +36,10 @@ public class MatrixStack {
         matrix4f.scale(x, y, z);
     }
 
+    public void scale(float scale) {
+        this.scale(scale, scale, scale);
+    }
+
     public void rotate(Quaternionf quaternionf) {
         this.stack.getLast().rotate(quaternionf);
     }

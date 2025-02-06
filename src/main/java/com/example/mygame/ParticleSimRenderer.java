@@ -1,5 +1,6 @@
 package com.example.mygame;
 
+import dev.cryptics.obscura.Obscura;
 import dev.cryptics.obscura.core.Camera;
 import dev.cryptics.obscura.core.MatrixStack;
 import dev.cryptics.obscura.core.render.ObscuraRenderer;
@@ -30,7 +31,7 @@ public class ParticleSimRenderer extends ObscuraRenderer {
     private ShaderProgram particleRenderShader;
 
     private int ssbo;
-    public int particleCount = 10000;
+    public int particleCount = 1000000;
     private int floatPerParticle = 4 + 4;
 
 
@@ -60,9 +61,9 @@ public class ParticleSimRenderer extends ObscuraRenderer {
             data[i * this.floatPerParticle + 3] = (float) 0.0; // Padding
 
             // Velocity
-            data[i * this.floatPerParticle + 4] = randomBetween(-1, 1) * 0;
-            data[i * this.floatPerParticle + 5] = randomBetween(-1, 1) * 0;
-            data[i * this.floatPerParticle + 6] = randomBetween(-1, 1) * 0;
+            data[i * this.floatPerParticle + 4] = randomBetween(-1, 1) * 1;
+            data[i * this.floatPerParticle + 5] = randomBetween(-1, 1) * 1;
+            data[i * this.floatPerParticle + 6] = randomBetween(-1, 1) * 1;
             data[i * this.floatPerParticle + 7] = (float) 0.0; // Padding
         }
         FloatBuffer buffer = BufferUtils.createFloatBuffer(this.particleCount * this.floatPerParticle);
@@ -79,6 +80,8 @@ public class ParticleSimRenderer extends ObscuraRenderer {
             particleRenderShader.createUniform("ModelMat");
             particleRenderShader.createUniform("ViewMat");
             particleRenderShader.createUniform("ProjMat");
+
+            particleUpdateShader.createUniform("dt");
         } catch (Exception e) {
             LOGGER.error("Failed to create uniform in default shader", e);
         }
@@ -99,14 +102,17 @@ public class ParticleSimRenderer extends ObscuraRenderer {
     public void render(MatrixStack matrixStack) {
         // 1.0. Compute Shader
         // --------------------------------------------------------------
-        particleUpdateShader.bind();
-        int size = (particleCount + 128 -1) / 128;
-        glDispatchCompute(size, 1, 1);
+        if (Obscura.getWindow().getImguiLayer().checkbox.get()) {
+            particleUpdateShader.bind();
+            particleUpdateShader.setUniform("dt", Obscura.getWindow().getImguiLayer().dt[0] * (Obscura.getWindow().getImguiLayer().checkbox2.get() ? -1.0f : 1.0f));
+            int size = (particleCount + 128 -1) / 128;
+            glDispatchCompute(size, 1, 1);
+        }
         // make sure writing to image has finished before read
         //glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT); // GL_SHADER_STORAGE_BARRIER_BIT
-        glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+        //glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
+        //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
+        //glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
 
 //        FloatBuffer ssboData = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY).asFloatBuffer();
 //        for (int i = 0; i < this.particleCount; i++) {
@@ -117,7 +123,7 @@ public class ParticleSimRenderer extends ObscuraRenderer {
 
         matrixStack.push();
         matrixStack.translate(-5, 0, -14);
-        matrixStack.scale(0.1f, 0.1f, 0.1f);
+        matrixStack.scale(0.005f);
         this.suzanneModel.render(particleRenderShader, matrixStack);
         matrixStack.pop();
     }
@@ -135,5 +141,9 @@ public class ParticleSimRenderer extends ObscuraRenderer {
     @Override
     public Camera getMainCamera() {
         return camera;
+    }
+
+    public void setParticleBuffer() {
+
     }
 }

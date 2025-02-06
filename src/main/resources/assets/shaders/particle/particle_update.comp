@@ -10,7 +10,7 @@ layout(std430, binding=0) buffer SSBO_0 {
 };
 
 //uniform float dt;
-const float dt = 0.01;
+uniform float dt;
 
 vec3 vectorField(vec3 p) {
     float r = length(p);
@@ -18,8 +18,8 @@ vec3 vectorField(vec3 p) {
 }
 
 vec3 calculateForce(Particle particle) {
-    vec3 vector = vectorField(particle.position) * 50;
-    float magnitude = 5/(pow(length(particle.position)/10, 2));
+    vec3 vector = vectorField(particle.position) * 15;
+    float magnitude = 15/(pow(length(particle.position)/10, 2));
     vec3 direction = normalize(-particle.position);
     vector += direction * magnitude;
 

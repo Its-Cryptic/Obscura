@@ -68,6 +68,15 @@ mat4 getMat(Particle particle) {
     return mat;
 }
 
+float remap(float value, float min1, float max1, float min2, float max2) {
+    return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
+}
+
+vec3 remap(float value, vec3 min1, vec3 max1, vec3 min2, vec3 max2) {
+    return vec3(remap(value, min1.x, max1.x, min2.x, max2.x),
+                remap(value, min1.y, max1.y, min2.y, max2.y),
+                remap(value, min1.z, max1.z, min2.z, max2.z));
+}
 
 void main() {
     Particle particle = particles[gl_InstanceID];
@@ -77,7 +86,10 @@ void main() {
     vec4(0.0, 1.0, 0.0, 1.0),  // Green for gl_VertexID == 1
     vec4(0.0, 0.0, 1.0, 1.0)   // Blue for gl_VertexID == 2
     );
-    vertexColor = colors[gl_InstanceID % 3];
+
+    //vertexColor = colors[gl_InstanceID % 3];
+    //vertexColor = vec4(1.0, 0.8352, 0.0, 1.0);
+    vertexColor = vec4(mix(vec3(74.0/255.0, 57.0/255.0, 3.0/255.0), vec3(1.0, 0.8352, 0.0), float(gl_InstanceID % 3)/3.0), 1.0);
     //vertexColor *= calculateDiffuseStrength(normalize(vec3(-1.0, -1.0, -1.0)), normalize(Normal));
     texCoord = TexCoord;
 }
