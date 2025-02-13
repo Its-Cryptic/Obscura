@@ -12,6 +12,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
+import org.lwjgl.system.MemoryUtil;
 
 import java.nio.FloatBuffer;
 
@@ -66,7 +67,7 @@ public class ParticleSimRenderer extends ObscuraRenderer {
             data[i * this.floatPerParticle + 6] = randomBetween(-1, 1) * 1;
             data[i * this.floatPerParticle + 7] = (float) 0.0; // Padding
         }
-        FloatBuffer buffer = BufferUtils.createFloatBuffer(this.particleCount * this.floatPerParticle);
+        FloatBuffer buffer = MemoryUtil.memAllocFloat(this.particleCount * this.floatPerParticle);
         buffer.put(data);
         buffer.flip();
 
@@ -75,6 +76,7 @@ public class ParticleSimRenderer extends ObscuraRenderer {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
         glBufferData(GL_SHADER_STORAGE_BUFFER, buffer, GL_DYNAMIC_COPY);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+        MemoryUtil.memFree(buffer);
 
         try {
             particleRenderShader.createUniform("ModelMat");

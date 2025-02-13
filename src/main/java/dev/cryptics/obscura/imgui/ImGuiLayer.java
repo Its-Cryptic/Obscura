@@ -37,15 +37,15 @@ public class ImGuiLayer {
 //        ImGui.end();
 //        ImGui.showDemoWindow();
 
-        ImGui.begin("GPU Particles");
-        ImGui.text("Particle Count: " + ( (ParticleSimRenderer) Obscura.getContext().getRenderer()).particleCount);
-        ImGui.checkbox("Play", checkbox);
-        ImGui.sliderFloat("dt", dt, 0.001f, 0.1f);
-        ImGui.checkbox("Invert", checkbox2);
-        if (ImGui.button("Reset")) {
-            //((ParticleSimRenderer) Obscura.getContext().getRenderer()).particleCount = 1000000;
-        }
-        ImGui.end();
+//        ImGui.begin("GPU Particles");
+//        ImGui.text("Particle Count: " + ( (ParticleSimRenderer) Obscura.getContext().getRenderer()).particleCount);
+//        ImGui.checkbox("Play", checkbox);
+//        ImGui.sliderFloat("dt", dt, 0.001f, 0.1f);
+//        ImGui.checkbox("Invert", checkbox2);
+//        if (ImGui.button("Reset")) {
+//            //((ParticleSimRenderer) Obscura.getContext().getRenderer()).particleCount = 1000000;
+//        }
+//        ImGui.end();
 
     }
 }

@@ -48,6 +48,12 @@ public class MatrixStack {
         this.stack.getLast().rotateAround(quaternionf, x, y, z);
     }
 
+    public void pushPop(Runnable runnable) {
+        this.push();
+        runnable.run();
+        this.pop();
+    }
+
     public void push() {
         this.stack.addLast(new Matrix4f(this.stack.getLast()));
     }

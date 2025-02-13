@@ -20,7 +20,7 @@ public class MyGame extends AbstractGame {
                 .setTitle("My Game :D")
                 .setWindowSize(1280, 720)
                 //.setWindowSize(1920, 1080)
-                .setWindowSize(2560, 1400)
+                //.setWindowSize(2560, 1400)
                 .addKeyCallback((window, key, scancode, action, mods) -> {
                     LOGGER.info("Pressed key: " + key);
                     if (key == GLFW.GLFW_KEY_M && action == GLFW.GLFW_PRESS) {
@@ -31,7 +31,7 @@ public class MyGame extends AbstractGame {
                     LOGGER.info("Resized window to: " + width + "x" + height);
                 })
         );
-        context.setRenderer(new ParticleSimRenderer());
+        context.setRenderer(new TriangleDistributionRenderer());
         LOGGER.info("Hello, Obscura!");
     }
 
