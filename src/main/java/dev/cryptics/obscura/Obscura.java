@@ -8,7 +8,7 @@ import dev.cryptics.obscura.launcher.GameLauncher;
 import org.apache.logging.log4j.*;
 
 public class Obscura {
-    public static final Logger LOGGER = LogManager. getLogger();
+    public static final Logger LOGGER = LogManager.getLogger();
     private static Window window;
     private static ModelLoader modelLoader;
     private static ObscuraContext context;

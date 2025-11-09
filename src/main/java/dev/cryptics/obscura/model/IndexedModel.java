@@ -60,8 +60,8 @@ public abstract class IndexedModel {
         glEnableVertexAttribArray(1);
         glEnableVertexAttribArray(2);
         //glEnableVertexAttribArray(3);
-        glDrawElements(GL_TRIANGLES, this.bakedIndices.size(), GL_UNSIGNED_INT, 0);
-        //glDrawElementsInstanced(GL_TRIANGLES, this.bakedIndices.size(), GL_UNSIGNED_INT, 0, ((TriangleDistributionRenderer) Obscura.getContext().getRenderer()).particleCount);
+        //glDrawElements(GL_TRIANGLES, this.bakedIndices.size(), GL_UNSIGNED_INT, 0);
+        glDrawElementsInstanced(GL_TRIANGLES, this.bakedIndices.size(), GL_UNSIGNED_INT, 0, ((ParticleSimRenderer) Obscura.getContext().getRenderer()).particleCount);
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
         glDisableVertexAttribArray(2);

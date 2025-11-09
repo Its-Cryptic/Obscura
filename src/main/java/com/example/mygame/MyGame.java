@@ -6,7 +6,12 @@ import dev.cryptics.obscura.core.*;
 import dev.cryptics.obscura.launcher.ObscuraGame;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.commons.io.IOUtils;
 import org.lwjgl.glfw.GLFW;
+
+import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 @ObscuraGame(id = "my_game")
 public class MyGame extends AbstractGame {
@@ -26,12 +31,18 @@ public class MyGame extends AbstractGame {
                     if (key == GLFW.GLFW_KEY_M && action == GLFW.GLFW_PRESS) {
                         Obscura.getWindow().setWindowName("My Game :D & M");
                     }
+//                    try {
+//                        LOGGER.info(IOUtils.toString(new URL("https://www.cryptics.dev"), StandardCharsets.UTF_8));
+//                    } catch (IOException e) {
+//                        throw new RuntimeException(e);
+//                    }
                 })
                 .addFramebufferSizeCallback((window, width, height) -> {
                     LOGGER.info("Resized window to: " + width + "x" + height);
                 })
         );
-        context.setRenderer(new TriangleDistributionRenderer());
+        //context.setRenderer(new TriangleDistributionRenderer());
+        context.setRenderer(new ParticleSimRenderer());
         LOGGER.info("Hello, Obscura!");
     }
 
